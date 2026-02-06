@@ -1,0 +1,213 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  //provider = "prisma-client/js"
+  provider = "prisma-client-js"
+  //output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPPORT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  profileImage  String?   
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true) 
+
+  resetToken       String?  // El código de 6 dígitos o token
+  resetTokenExpiry DateTime? // Cuándo caduca ese código
+
+  
+  addresses     Address[] 
+  cart          Cart?
+  orders        Order[]
+  reviews       Review[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users") 
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  street      String
+  city        String
+  state       String?
+  postalCode  String
+  country     String
+  isDefault   Boolean  @default(false)
+  orders      Order[] 
+
+  @@map("addresses")
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  slug        String     @unique 
+  description String?
+  image       String?    
+  parentId    Int?
+  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  products    Product[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?        @db.Text
+  price       Decimal        @db.Decimal(10, 2) 
+  stock       Int            @default(0) // <--- AGREGA ESTO      
+  slug        String         @unique 
+  isActive    Boolean        @default(true)
+  categoryId  Int
+  category    Category       @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  variants    ProductVariant[] 
+  reviews     Review[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("products")
+  @@index([categoryId]) 
+}
+
+model ProductVariant {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size        String?  
+  color       String?  
+  sku         String   @unique 
+  stock       Int      @default(0) 
+  price       Decimal  @db.Decimal(10, 2) 
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  @@map("product_variants")
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int?       @unique 
+  user      User?      @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id               Int             @id @default(autoincrement())
+  cartId           Int
+  cart             Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId        Int
+  product          Product         @relation(fields: [productId], references: [id])
+  productVariantId Int?
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  quantity         Int
+
+  @@map("cart_items")
+}
+
+model Order {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  user            User          @relation(fields: [userId], references: [id])
+  addressId       Int
+  address         Address       @relation(fields: [addressId], references: [id])
+  paymentId     String?       // <--- ESTO ES LO QUE FALTA
+  total           Decimal       @db.Decimal(10, 2)
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  transactionId   String?       
+  orderItems      OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id               Int             @id @default(autoincrement())
+  orderId          Int
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        Int
+  product          Product         @relation(fields: [productId], references: [id])
+  productVariantId Int?
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  quantity         Int
+  price            Decimal         @db.Decimal(10, 2) 
+
+  @@map("order_items")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  rating    Int      @default(0)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+

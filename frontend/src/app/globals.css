@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Puedes agregar esto para asegurarte que el fondo no sea transparente */
+body {
+  background-color: #dde1e5; /* Gray-50 */
+}
