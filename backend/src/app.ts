@@ -66,7 +66,7 @@ app.use(cors({
       callback(new Error(`Bloqueado por CORS. El origen '${origin}' no está permitido.`));
     }
   },
-  credentials: false, // Importante para enviar cookies/headers
+  credentials: true, // Importante para enviar cookies/headers
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
   
