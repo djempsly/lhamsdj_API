@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ProductService, ProductFilters } from '../services/productService';
 import { createProductSchema, updateProductSchema } from '../validation/productSchema';
 import { parsePagination } from '../utils/pagination';
+import { convertProductPrices } from '../utils/priceFormatter';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -15,7 +16,13 @@ export const getProducts = async (req: Request, res: Response) => {
     if (req.query.inStock === 'true') filters.inStock = true;
 
     const result = await ProductService.getAll(pagination, filters);
-    res.json({ success: true, ...result });
+
+    const currency = req.geo?.currency || 'USD';
+    if (currency !== 'USD') {
+      result.data = await convertProductPrices(result.data, currency);
+    }
+
+    res.json({ success: true, ...result, currency, country: req.geo?.country });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

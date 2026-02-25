@@ -13,6 +13,7 @@ import { sanitizeInput } from './middleware/sanitizeMiddleware';
 import { securityHeaders } from './middleware/securityHeaders';
 import { apiPublicLimiter } from './middleware/rateLimiters';
 import { requestId } from './middleware/requestId';
+import { geolocate } from './middleware/geolocate';
 import logger from './lib/logger';
 
 const app: Application = express();
@@ -58,9 +59,12 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 app.use(sanitizeInput);
 
-// 7. Request logging
+// 7. Geolocation (detect country/currency from IP)
+app.use(geolocate);
+
+// 8. Request logging
 app.use((req, res, next) => {
-  logger.info({ method: req.method, url: req.url, ip: req.ip, requestId: req.requestId }, 'request');
+  logger.info({ method: req.method, url: req.url, ip: req.ip, requestId: req.requestId, country: req.geo?.country }, 'request');
   next();
 });
 

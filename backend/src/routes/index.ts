@@ -12,6 +12,7 @@ import paymentRoutes from './paymentRoutes';
 import variantRoutes from './variantRoutes';
 import productImageRoutes from './productImageRoutes';
 import vendorRoutes from './vendorRoutes';
+import vendorPayoutRoutes from './vendorPayoutRoutes';
 import shipmentRoutes from './shipmentRoutes';
 import shippingRoutes from './shippingRoutes';
 import currencyRoutes from './currencyRoutes';
@@ -40,6 +41,7 @@ router.use('/wishlist', wishlistRoutes);
 
 // Marketplace
 router.use('/vendors', vendorRoutes);
+router.use('/vendor-payouts', vendorPayoutRoutes);
 router.use('/shipments', shipmentRoutes);
 router.use('/shipping', shippingRoutes);
 router.use('/currencies', currencyRoutes);
