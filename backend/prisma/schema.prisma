@@ -134,7 +134,10 @@ model Product {
   updatedAt   DateTime       @updatedAt
 
   @@map("products")
-  @@index([categoryId]) 
+  @@index([categoryId])
+  @@index([isActive, createdAt])
+  @@index([price])
+  @@index([slug])
 }
 
 model ProductVariant {
@@ -158,6 +161,7 @@ model ProductImage {
   productId Int
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  @@index([productId])
   @@map("product_images")
 }
 
@@ -201,6 +205,8 @@ model Order {
   updatedAt       DateTime      @updatedAt
 
   @@map("orders")
+  @@index([userId, status])
+  @@index([status, createdAt])
 }
 
 model OrderItem {
@@ -227,6 +233,8 @@ model Review {
   comment   String?
   createdAt DateTime @default(now())
 
+  @@index([productId, createdAt])
+  @@index([userId, productId])
   @@map("reviews")
 }
 

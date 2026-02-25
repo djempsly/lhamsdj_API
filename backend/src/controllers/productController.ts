@@ -1,21 +1,21 @@
 import { Request, Response } from 'express';
-import { ProductService } from '../services/productService';
+import { ProductService, ProductFilters } from '../services/productService';
 import { createProductSchema, updateProductSchema } from '../validation/productSchema';
-
-export const createProduct = async (req: Request, res: Response) => {
-  try {
-    const validatedData = createProductSchema.parse(req.body);
-    const product = await ProductService.create(validatedData);
-    res.status(201).json({ success: true, data: product });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
+import { parsePagination } from '../utils/pagination';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const products = await ProductService.getAll();
-    res.json({ success: true, data: products });
+    const pagination = parsePagination(req.query as any, 'createdAt');
+
+    const filters: ProductFilters = {};
+    if (req.query.search) filters.search = String(req.query.search);
+    if (req.query.categoryId) filters.categoryId = Number(req.query.categoryId);
+    if (req.query.minPrice) filters.minPrice = Number(req.query.minPrice);
+    if (req.query.maxPrice) filters.maxPrice = Number(req.query.maxPrice);
+    if (req.query.inStock === 'true') filters.inStock = true;
+
+    const result = await ProductService.getAll(pagination, filters);
+    res.json({ success: true, ...result });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -25,12 +25,20 @@ export const getProductBySlug = async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const product = await ProductService.getBySlug(slug as string);
-    
     if (!product) return res.status(404).json({ success: false, message: 'Producto no encontrado' });
-    
     res.json({ success: true, data: product });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const createProduct = async (req: Request, res: Response) => {
+  try {
+    const validatedData = createProductSchema.parse(req.body);
+    const product = await ProductService.create(validatedData);
+    res.status(201).json({ success: true, data: product });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -51,6 +59,6 @@ export const deleteProduct = async (req: Request, res: Response) => {
     await ProductService.delete(Number(id));
     res.json({ success: true, message: 'Producto eliminado' });
   } catch (error: any) {
-    res.status(400).json({ success: false, message: 'No se pudo eliminar el producto (¿Tiene pedidos asociados?)' });
+    res.status(400).json({ success: false, message: 'No se pudo eliminar el producto' });
   }
 };

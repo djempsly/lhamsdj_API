@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserService } from '../services/userService';
 import { updateProfileSchema, toggleUserStatusSchema } from '../validation/userSchema';
 import { audit, AuditActions } from '../lib/audit';
+import { parsePagination } from '../utils/pagination';
 
 export const getMyProfile = async (req: Request, res: Response) => {
   try {
@@ -43,8 +44,9 @@ export const deleteMyAccount = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await UserService.getAllUsers();
-    res.json({ success: true, data: users });
+    const pagination = parsePagination(req.query as any, 'createdAt');
+    const result = await UserService.getAllUsers(pagination);
+    res.json({ success: true, ...result });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
