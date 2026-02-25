@@ -231,10 +231,11 @@ model Product {
   vendor      Vendor?          @relation(fields: [vendorId], references: [id])
   images      ProductImage[]
   variants    ProductVariant[]
-  reviews     Review[]
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  wishlistItems WishlistItem[]
+  reviews          Review[]
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  wishlistItems    WishlistItem[]
+  supplierProducts SupplierProduct[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -469,6 +470,86 @@ model Dispute {
   @@index([orderId])
   @@index([status])
   @@map("disputes")
+}
+
+// ─── DROPSHIPPING ────────────────────────────────────────
+
+enum SupplierStatus {
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
+enum SupplierOrderStatus {
+  PENDING
+  SENT_TO_SUPPLIER
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+model Supplier {
+  id           Int            @id @default(autoincrement())
+  name         String
+  slug         String         @unique
+  apiType      String         @default("MANUAL")
+  apiBaseUrl   String?
+  apiKey       String?
+  country      String
+  currency     String         @default("USD")
+  leadTimeDays Int            @default(7)
+  status       SupplierStatus @default(ACTIVE)
+  notes        String?        @db.Text
+
+  products     SupplierProduct[]
+  orders       SupplierOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("suppliers")
+}
+
+model SupplierProduct {
+  id              Int      @id @default(autoincrement())
+  supplierId      Int
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  productId       Int
+  product         Product  @relation(fields: [productId], references: [id])
+  supplierSku     String
+  supplierPrice   Decimal  @db.Decimal(10, 2)
+  supplierUrl     String?
+  lastSyncedAt    DateTime?
+  supplierStock   Int      @default(0)
+  isActive        Boolean  @default(true)
+
+  @@unique([supplierId, productId])
+  @@unique([supplierId, supplierSku])
+  @@map("supplier_products")
+}
+
+model SupplierOrder {
+  id                Int                 @id @default(autoincrement())
+  supplierId        Int
+  supplier          Supplier            @relation(fields: [supplierId], references: [id])
+  orderId           Int
+  orderItemId       Int?
+  externalOrderId   String?
+  status            SupplierOrderStatus @default(PENDING)
+  trackingNumber    String?
+  supplierCost      Decimal             @db.Decimal(10, 2)
+  notes             String?
+  sentAt            DateTime?
+  confirmedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId, status])
+  @@index([orderId])
+  @@map("supplier_orders")
 }
 
 // ─── CURRENCY ────────────────────────────────────────────
