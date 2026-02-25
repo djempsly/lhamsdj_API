@@ -13,6 +13,7 @@ import variantRoutes from './variantRoutes';
 import productImageRoutes from './productImageRoutes';
 import vendorRoutes from './vendorRoutes';
 import shipmentRoutes from './shipmentRoutes';
+import shippingRoutes from './shippingRoutes';
 import currencyRoutes from './currencyRoutes';
 import couponRoutes from './couponRoutes';
 import wishlistRoutes from './wishlistRoutes';
@@ -40,6 +41,7 @@ router.use('/wishlist', wishlistRoutes);
 // Marketplace
 router.use('/vendors', vendorRoutes);
 router.use('/shipments', shipmentRoutes);
+router.use('/shipping', shippingRoutes);
 router.use('/currencies', currencyRoutes);
 
 // Engagement

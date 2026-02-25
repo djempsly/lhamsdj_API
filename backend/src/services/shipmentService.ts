@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { PaginationResult, buildPaginatedResponse } from '../utils/pagination';
+import { ShippingService } from './shippingService';
 
 export const ShipmentService = {
   async createForOrder(orderId: number) {
@@ -45,6 +46,7 @@ export const ShipmentService = {
       data: { shipmentId, status: 'PICKED_UP', details: `Carrier: ${data.carrier}, Tracking: ${data.trackingNumber}` },
     });
 
+    await ShippingService.onShipmentStatusChange(shipmentId, 'PICKED_UP');
     return updated;
   },
 
@@ -69,6 +71,7 @@ export const ShipmentService = {
       }
     }
 
+    await ShippingService.onShipmentStatusChange(shipmentId, status);
     return updated;
   },
 

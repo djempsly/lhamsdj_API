@@ -6,8 +6,8 @@ import { parsePagination } from '../utils/pagination';
 export const createOrder = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id!;
-    const { addressId } = createOrderSchema.parse(req.body);
-    const order = await OrderService.createOrder(userId, addressId);
+    const data = createOrderSchema.parse(req.body);
+    const order = await OrderService.createOrder(userId, data);
     res.status(201).json({ success: true, message: 'Orden creada exitosamente', data: order });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -42,7 +42,7 @@ export const payOrder = async (req: Request, res: Response) => {
     const userId = req.user?.id!;
     const { id } = req.params;
     const order = await OrderService.markAsPaid(userId, Number(id));
-    res.json({ success: true, message: 'Pago simulado exitoso', data: order });
+    res.json({ success: true, message: 'Pago registrado', data: order });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
