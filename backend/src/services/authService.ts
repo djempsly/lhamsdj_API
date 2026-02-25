@@ -18,7 +18,7 @@ export const AuthService = {
     const { email, password, name, phone } = data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) throw new Error('El correo ya está registrado');
+    if (existing) throw new Error('DUPLICATE_EMAIL');
 
     const hashedPassword = await bcrypt.hash(password, 12);
 

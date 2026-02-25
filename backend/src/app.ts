@@ -12,9 +12,13 @@ import { errorHandler } from './middleware/errorMiddleware';
 import { sanitizeInput } from './middleware/sanitizeMiddleware';
 import { securityHeaders } from './middleware/securityHeaders';
 import { apiPublicLimiter } from './middleware/rateLimiters';
+import { requestId } from './middleware/requestId';
 import logger from './lib/logger';
 
 const app: Application = express();
+
+// 0. Request ID (antes de todo para trazabilidad)
+app.use(requestId);
 
 // 1. Security headers (Helmet + custom)
 app.use(helmet({
@@ -56,7 +60,7 @@ app.use(sanitizeInput);
 
 // 7. Request logging
 app.use((req, res, next) => {
-  logger.info({ method: req.method, url: req.url, ip: req.ip }, 'request');
+  logger.info({ method: req.method, url: req.url, ip: req.ip, requestId: req.requestId }, 'request');
   next();
 });
 

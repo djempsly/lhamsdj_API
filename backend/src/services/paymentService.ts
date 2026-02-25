@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma';
+import logger from '../lib/logger';
 
 const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
 if (!STRIPE_SECRET && process.env.NODE_ENV === 'production') {
@@ -10,81 +11,67 @@ const stripe = new Stripe(STRIPE_SECRET || 'sk_test_placeholder', {
 });
 
 export const PaymentService = {
-  // 1. Crear intención (Frontend pide permiso para pagar)
   async createPaymentIntent(userId: number, orderId: number) {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
 
-    if (!order || order.userId !== userId) throw new Error("Orden no encontrada");
-    if (order.status !== 'PENDING') throw new Error("La orden no está pendiente");
+    if (!order || order.userId !== userId) throw new Error('Orden no encontrada');
+    if (order.status !== 'PENDING') throw new Error('La orden no está pendiente');
 
-    // Stripe cobra en centavos
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(Number(order.total) * 100),
-      currency: 'usd', 
-      metadata: { orderId: order.id.toString() } // Guardamos ID para el webhook
+      currency: 'usd',
+      metadata: { orderId: order.id.toString() },
     });
 
     await prisma.order.update({
       where: { id: orderId },
-      data: { paymentId: paymentIntent.id }
+      data: { paymentId: paymentIntent.id },
     });
 
     return { clientSecret: paymentIntent.client_secret };
   },
 
-  // 2. Webhook (Stripe nos avisa del éxito)
-//  
-
-
-
-
-// ... imports
-
   async handleWebhook(signature: string, rawBody: Buffer) {
-    let event: Stripe.Event;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) throw new Error('STRIPE_WEBHOOK_SECRET not configured');
 
+    let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET!
-      );
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     } catch (err: any) {
-      console.error(`❌ Error de Firma: ${err.message}`);
+      logger.error({ err: err.message }, 'Webhook signature verification failed');
       throw new Error(`Webhook Error: ${err.message}`);
     }
 
-    // 👇 LOG NUEVO: ¿Qué evento llegó?
-    console.log(`📨 Evento Recibido: ${event.type}`);
+    logger.info({ eventType: event.type, eventId: event.id }, 'Stripe webhook received');
 
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      
-      // 👇 LOG NUEVO: ¿Qué metadata trae?
-      console.log('📦 Metadata:', paymentIntent.metadata);
-
-      console.log(`🔎 ID RECIBIDO: ${paymentIntent.id}`);
-  console.log('📦 Metadata:', paymentIntent.metadata);
 
       if (!paymentIntent.metadata.orderId) {
-        console.error('⚠️ El pago llegó sin Order ID.');
+        logger.warn({ paymentIntentId: paymentIntent.id }, 'Payment without orderId in metadata');
         return;
       }
 
       const orderId = Number(paymentIntent.metadata.orderId);
 
+      // IDEMPOTENCIA: verificar estado actual antes de actualizar
+      const order = await prisma.order.findUnique({ where: { id: orderId } });
+      if (!order) {
+        logger.warn({ orderId }, 'Order not found for webhook');
+        return;
+      }
+      if (order.paymentStatus === 'COMPLETED') {
+        logger.info({ orderId }, 'Order already PAID, skipping duplicate webhook');
+        return;
+      }
+
       await prisma.order.update({
         where: { id: orderId },
-        data: {
-          status: 'PAID',
-          paymentStatus: 'COMPLETED'
-        }
+        data: { status: 'PAID', paymentStatus: 'COMPLETED' },
       });
-      
-      console.log(`✅ ¡ORDEN #${orderId} ACTUALIZADA A PAID!`);
-    } else {
-      // 👇 LOG NUEVO: Si llega otro evento
-      console.log(`ℹ️ Ignorando evento tipo: ${event.type}`);
+
+      logger.info({ orderId }, 'Order marked as PAID');
     }
-  }
+  },
 };

@@ -16,10 +16,12 @@ export const errorHandler = (err: ErrorWithStatus, req: Request, res: Response, 
     method: req.method,
     url: req.url,
     ip: req.ip,
+    requestId: req.requestId,
   });
 
   res.status(statusCode).json({
     success: false,
     error: message,
+    requestId: req.requestId,
   });
 };
