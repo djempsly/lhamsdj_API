@@ -1,8 +1,12 @@
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2026-01-28.clover', // Usa una versión válida
+const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
+if (!STRIPE_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('STRIPE_SECRET_KEY must be set in production');
+}
+const stripe = new Stripe(STRIPE_SECRET || 'sk_test_placeholder', {
+  apiVersion: '2026-01-28.clover',
 });
 
 export const PaymentService = {

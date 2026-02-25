@@ -1,130 +1,80 @@
-// src/app.ts
 import express, { Application } from 'express';
 import cors from 'cors';
-import helmet from 'helmet'; 
-import morgan from 'morgan'; 
-import rateLimit from 'express-rate-limit'; 
-// IMPORTACIONES DE SWAGGER
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import nocache from 'nocache';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './docs/swagger';
-import nocache from 'nocache';
-import paymentRoutes from './routes/paymentRoutes';
 
-// Importación de rutas (sin .js y ruta relativa correcta)
-import routes from './routes/index'; 
-// Importación del middleware de errores
+import routes from './routes/index';
+import paymentRoutes from './routes/paymentRoutes';
 import { errorHandler } from './middleware/errorMiddleware';
+import { sanitizeInput } from './middleware/sanitizeMiddleware';
+import { securityHeaders } from './middleware/securityHeaders';
+import { apiPublicLimiter } from './middleware/rateLimiters';
+import logger from './lib/logger';
 
 const app: Application = express();
 
-// --- MIDDLEWARES GLOBALES ---
-
-// 1. Seguridad de Headers
-//app.use(helmet());
-
-
+// 1. Security headers (Helmet + custom)
 app.use(helmet({
-  //contentSecurityPolicy: false, // API pura
-  //crossOriginEmbedderPolicy: false,
-   contentSecurityPolicy: false,   // API no usa CSP
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: false,
-  crossOriginResourcePolicy: false
+  crossOriginResourcePolicy: false,
 }));
+app.use(securityHeaders);
+app.use(nocache());
 
-app.use(nocache()); // <--- Agrega esto. Evita que el navegador guarde respuestas JSON.
+// 2. Cookie parser (antes de todo lo que necesite leer cookies)
+app.use(cookieParser());
 
-// 2. Habilitar CORS
-// app.use(cors({
-//     origin: process.env.FRONTEND_URL || '*', 
-//     methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Agregué PATCH que lo usaremos
-//     allowedHeaders: ['Content-Type', 'Authorization']
-// }));
-
-
-
-// Define los orígenes permitidos
-const allowedOrigins = [
-  'http://localhost:5173', // Tu Frontend (Vite/React)
-  'http://localhost:3000', // Tu Backend y Swagger Docs
-  'http://localhost:4000', // Por si acaso usas otro puerto
-  // 'https://midominio.com' // Tu dominio en producción
-];
+// 3. CORS
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
 
 app.use(cors({
-  
   origin: (origin, callback) => {
-    // Permitir requests sin origen (como Postman, Apps móviles o CURL)
     if (!origin) return callback(null, true);
-
-    // DEBUG: Imprimir quién intenta entrar (borrar en producción)
-    console.log('Origen detectado:', origin);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Bloqueado por CORS. El origen '${origin}' no está permitido.`));
-    }
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origen '${origin}' no permitido.`));
   },
-  credentials: true, // Importante para enviar cookies/headers
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-  
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// 4. Rate limiting global (endpoints específicos tienen sus propios limits)
+app.use(apiPublicLimiter);
 
-
-// // Opción B: Array de orígenes permitidos (Local + Producción)
-// const allowedOrigins = ['http://localhost:5173', 'https://lhamsdj.com'];
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     // Permitir requests sin origen (como Postman o Apps móbiles)
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Bloqueado por CORS'));
-//     }
-//   }
-// }));
-
-
-// 3. Limiter: Máximo 100 peticiones por 15 min por IP
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100,
-  message: 'Demasiadas peticiones desde esta IP, intenta de nuevo en 15 minutos.'
-});
-app.use(limiter);
-
-// 🚨 EL WEBHOOK VA ANTES DEL JSON GLOBAL 🚨
+// 5. Stripe webhook ANTES del JSON parser (necesita raw body)
 app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), paymentRoutes);
 
-// 4. Parser de JSON y Logs
-app.use(express.json());
-app.use(morgan('dev'));
+// 6. JSON parser + sanitización
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: false, limit: '10kb' }));
+app.use(sanitizeInput);
+
+// 7. Request logging
 app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Frame-Options', 'DENY');
+  logger.info({ method: req.method, url: req.url, ip: req.ip }, 'request');
   next();
 });
 
-// RUTA DE LA DOCUMENTACIÓN
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// 8. Swagger docs (solo en desarrollo)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
-// --- RUTAS ---
-// Versionado v1
+// 9. Rutas API
 app.use('/api/v1', routes);
-// Resto de rutas (incluyendo paymentRoutes de nuevo para create-intent, no importa que se repita)
 app.use('/api/v1/payments', paymentRoutes);
 
+// 10. Health check
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', service: 'LhamsDJ API' });
+});
 
-app.get('/', (req, res)=>{
-    res.send('Mi servidor')
-})
-
-// --- MANEJO DE ERRORES ---
-// Middleware global de errores (siempre va al final)
+// 11. Error handler global (siempre al final)
 app.use(errorHandler);
 
 export default app;

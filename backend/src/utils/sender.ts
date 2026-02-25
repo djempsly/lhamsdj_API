@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const sendVerificationCode = async (email: string, code: string) => {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'LhamsDJ <noreply@lhams.com>',
+      from: 'LhamsDJ <noreply@lhamsdj.com>',
       to: email,
       subject: 'Código de recuperación - LhamsDJ',
       html: `

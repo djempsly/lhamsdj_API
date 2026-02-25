@@ -1,59 +1,101 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { sendVerificationCode } from '../utils/sender';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  storeRefreshToken,
+  validateRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserTokens,
+} from '../utils/tokens';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutos
 
 export const AuthService = {
-  // --- REGISTER ---
-  async register(data: any) {
+  async register(data: { email: string; password: string; name: string; phone?: string | undefined }) {
     const { email, password, name, phone } = data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) throw new Error('El correo ya está registrado');
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        phone,
-        role: 'USER',
-        isActive: true
-      },
-      select: { id: true, name: true, email: true, role: true }
+      data: { name, email, password: hashedPassword, phone: phone ?? null, role: 'USER', isActive: true, isVerified: false },
+      select: { id: true, name: true, email: true, role: true, isVerified: true },
     });
 
-    const token = jwt.sign({ id: newUser.id, role: newUser.role, email: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
+    const accessToken = generateAccessToken({ id: newUser.id, role: newUser.role, email: newUser.email });
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(newUser.id, refreshToken);
 
-    return { user: newUser, token };
+    return { user: newUser, accessToken, refreshToken };
   },
 
-  // --- LOGIN ---
-  async login(data: any) {
+  async login(data: { email: string; password: string }, userAgent?: string) {
     const { email, password } = data;
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) throw new Error('Credenciales inválidas');
     if (!user.isActive) throw new Error('Cuenta desactivada');
 
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      throw new Error(`Cuenta bloqueada. Intenta en ${minutesLeft} minutos.`);
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new Error('Credenciales inválidas');
+    if (!isMatch) {
+      const attempts = user.loginAttempts + 1;
+      const updateData: any = { loginAttempts: attempts };
+      if (attempts >= MAX_LOGIN_ATTEMPTS) {
+        updateData.lockedUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        updateData.loginAttempts = 0;
+      }
+      await prisma.user.update({ where: { id: user.id }, data: updateData });
 
-    const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+      const remaining = MAX_LOGIN_ATTEMPTS - attempts;
+      if (remaining > 0) {
+        throw new Error(`Credenciales inválidas. ${remaining} intentos restantes.`);
+      }
+      throw new Error('Cuenta bloqueada por demasiados intentos. Intenta en 30 minutos.');
+    }
 
-    const { password: _, ...userWithoutPass } = user;
-    return { user: userWithoutPass, token };
+    await prisma.user.update({ where: { id: user.id }, data: { loginAttempts: 0, lockedUntil: null } });
+
+    const accessToken = generateAccessToken({ id: user.id, role: user.role, email: user.email });
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(user.id, refreshToken, userAgent);
+
+    const { password: _, resetToken: __, resetTokenExpiry: ___, ...safeUser } = user;
+    return { user: safeUser, accessToken, refreshToken };
   },
 
-  // --- FORGOT PASSWORD ---
+  async refresh(currentRefreshToken: string, userAgent?: string) {
+    const stored = await validateRefreshToken(currentRefreshToken);
+    if (!stored || !stored.user.isActive) throw new Error('Sesión expirada');
+
+    await revokeRefreshToken(currentRefreshToken);
+
+    const accessToken = generateAccessToken({ id: stored.user.id, role: stored.user.role, email: stored.user.email });
+    const newRefreshToken = generateRefreshToken();
+    await storeRefreshToken(stored.user.id, newRefreshToken, userAgent);
+
+    return { accessToken, refreshToken: newRefreshToken };
+  },
+
+  async logout(refreshToken: string) {
+    await revokeRefreshToken(refreshToken);
+  },
+
+  async logoutAll(userId: number) {
+    await revokeAllUserTokens(userId);
+  },
+
   async forgotPassword(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
-    
-    // Por seguridad, si no existe no lanzamos error, solo retornamos false o true
     if (!user || !user.isActive) return false;
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -62,15 +104,14 @@ export const AuthService = {
 
     await prisma.user.update({
       where: { email },
-      data: { resetToken: hashedToken, resetTokenExpiry: expiry }
+      data: { resetToken: hashedToken, resetTokenExpiry: expiry },
     });
 
     await sendVerificationCode(email, code);
     return true;
   },
 
-  // --- RESET PASSWORD ---
-  async resetPassword(data: any) {
+  async resetPassword(data: { email: string; code: string; newPassword: string }) {
     const { email, code, newPassword } = data;
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -80,13 +121,26 @@ export const AuthService = {
     const validCode = await bcrypt.compare(code, user.resetToken);
     if (!validCode) throw new Error('Código incorrecto');
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     await prisma.user.update({
       where: { email },
-      data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null }
+      data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null, loginAttempts: 0, lockedUntil: null },
     });
 
+    await revokeAllUserTokens(user.id);
     return true;
-  }
+  },
+
+  async getUserById(id: number) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true, name: true, email: true, phone: true,
+        profileImage: true, role: true, isActive: true, isVerified: true, createdAt: true,
+      },
+    });
+    if (!user) throw new Error('Usuario no encontrado');
+    return user;
+  },
 };

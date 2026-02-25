@@ -1,11 +1,14 @@
-// src/server.ts
 import dotenv from 'dotenv';
 dotenv.config();
 
-import app from './app';
+import { validateEnvironment } from './lib/validateEnv';
+validateEnvironment();
 
-const PORT = process.env.PORT || 3000;
+import app from './app';
+import logger from './lib/logger';
+
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+  logger.info(`Server running on http://localhost:${PORT}`);
 });

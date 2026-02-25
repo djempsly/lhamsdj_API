@@ -1,28 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../lib/logger';
 
-// Definimos una interfaz simple para errores que tengan status
 interface ErrorWithStatus extends Error {
   status?: number;
 }
 
-export const errorHandler = (
-  err: ErrorWithStatus, 
-  req: Request, 
-  res: Response, 
-  next: NextFunction
-) => {
+export const errorHandler = (err: ErrorWithStatus, req: Request, res: Response, _next: NextFunction) => {
   const statusCode = err.status || 500;
-  const message = err.message || 'Error interno del servidor';
+  const message = statusCode === 500 ? 'Error interno del servidor' : err.message;
 
-  // Solo mostrar el stack trace en desarrollo
-  const stack = process.env.NODE_ENV === 'production' ? null : err.stack;
-
-  console.error(`[Error] ${statusCode} - ${message}`);
-  if (stack) console.error(stack);
+  logger.error({
+    statusCode,
+    message: err.message,
+    stack: err.stack,
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+  });
 
   res.status(statusCode).json({
     success: false,
     error: message,
-    stack: stack, // Opcional enviarlo al front
   });
 };
