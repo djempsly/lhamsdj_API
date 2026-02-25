@@ -1,13 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  //provider = "prisma-client/js"
   provider = "prisma-client-js"
-  //output   = "../generated/prisma"
 }
 
 datasource db {
@@ -15,10 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── ENUMS ───────────────────────────────────────────────
+
 enum Role {
   USER
   ADMIN
   SUPPORT
+  VENDOR
 }
 
 enum OrderStatus {
@@ -38,33 +33,89 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum VendorStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum VendorType {
+  STANDARD
+  DROPSHIP
+}
+
+enum ShipmentStatus {
+  PENDING
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURNED
+  FAILED
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeType {
+  REFUND
+  DAMAGED
+  NOT_RECEIVED
+  WRONG_ITEM
+  OTHER
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  SHIPMENT_UPDATE
+  PROMOTION
+  SYSTEM
+  DISPUTE
+  PAYOUT
+}
+
+// ─── USER & AUTH ─────────────────────────────────────────
+
 model User {
   id            Int       @id @default(autoincrement())
   name          String
   email         String    @unique
   password      String
   phone         String?
-  profileImage  String?   
+  profileImage  String?
   role          Role      @default(USER)
   isActive      Boolean   @default(true)
   isVerified    Boolean   @default(false)
 
   resetToken       String?
   resetTokenExpiry DateTime?
-
   loginAttempts    Int       @default(0)
   lockedUntil      DateTime?
 
-  addresses     Address[] 
-  cart          Cart?
-  orders        Order[]
-  reviews       Review[]
-  refreshTokens RefreshToken[]
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  addresses      Address[]
+  cart           Cart?
+  orders         Order[]
+  reviews        Review[]
+  refreshTokens  RefreshToken[]
+  vendor         Vendor?
+  wishlistItems  WishlistItem[]
+  notifications  Notification[]
+  disputes       Dispute[]
 
-  @@map("users") 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 
 model RefreshToken {
@@ -82,17 +133,68 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+// ─── VENDOR (MARKETPLACE) ────────────────────────────────
+
+model Vendor {
+  id              Int          @id @default(autoincrement())
+  userId          Int          @unique
+  user            User         @relation(fields: [userId], references: [id])
+  businessName    String
+  slug            String       @unique
+  description     String?      @db.Text
+  logo            String?
+  taxId           String?
+  country         String
+  city            String?
+  bankInfo        String?
+  stripeAccountId String?
+  commissionRate  Decimal      @default(10) @db.Decimal(5, 2)
+  type            VendorType   @default(STANDARD)
+  status          VendorStatus @default(PENDING)
+
+  products   Product[]
+  shipments  Shipment[]
+  payouts    VendorPayout[]
+  disputes   Dispute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([slug])
+  @@map("vendors")
+}
+
+model VendorPayout {
+  id       Int     @id @default(autoincrement())
+  vendorId Int
+  vendor   Vendor  @relation(fields: [vendorId], references: [id])
+  orderId  Int?
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("USD")
+  status   String  @default("PENDING")
+  stripePayoutId String?
+  paidAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([vendorId, status])
+  @@map("vendor_payouts")
+}
+
+// ─── CATALOG ─────────────────────────────────────────────
+
 model Address {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  street      String
-  city        String
-  state       String?
-  postalCode  String
-  country     String
-  isDefault   Boolean  @default(false)
-  orders      Order[] 
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  street     String
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  orders     Order[]
 
   @@map("addresses")
 }
@@ -100,57 +202,62 @@ model Address {
 model Category {
   id          Int        @id @default(autoincrement())
   name        String
-  slug        String     @unique 
+  slug        String     @unique
   description String?
-  image       String?    
+  image       String?
   parentId    Int?
   parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryChildren")
   products    Product[]
-  
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("categories")
 }
 
 model Product {
-  id          Int            @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   name        String
-  description String?        @db.Text
-  price       Decimal        @db.Decimal(10, 2) 
-  stock       Int            @default(0) // <--- AGREGA ESTO      
-  slug        String         @unique 
-  isActive    Boolean        @default(true)
+  description String?          @db.Text
+  price       Decimal          @db.Decimal(10, 2)
+  stock       Int              @default(0)
+  slug        String           @unique
+  isActive    Boolean          @default(true)
+  weight      Decimal?         @db.Decimal(8, 2)
   categoryId  Int
-  category    Category       @relation(fields: [categoryId], references: [id])
+  category    Category         @relation(fields: [categoryId], references: [id])
+  vendorId    Int?
+  vendor      Vendor?          @relation(fields: [vendorId], references: [id])
   images      ProductImage[]
-  variants    ProductVariant[] 
+  variants    ProductVariant[]
   reviews     Review[]
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  wishlistItems WishlistItem[]
 
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("products")
   @@index([categoryId])
+  @@index([vendorId])
   @@index([isActive, createdAt])
   @@index([price])
   @@index([slug])
 }
 
 model ProductVariant {
-  id          Int      @id @default(autoincrement())
-  productId   Int
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  size        String?  
-  color       String?  
-  sku         String   @unique 
-  stock       Int      @default(0) 
-  price       Decimal  @db.Decimal(10, 2) 
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size       String?
+  color      String?
+  sku        String   @unique
+  stock      Int      @default(0)
+  price      Decimal  @db.Decimal(10, 2)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@map("product_variants")
 }
@@ -165,9 +272,11 @@ model ProductImage {
   @@map("product_images")
 }
 
+// ─── CART ────────────────────────────────────────────────
+
 model Cart {
   id        Int        @id @default(autoincrement())
-  userId    Int?       @unique 
+  userId    Int?       @unique
   user      User?      @relation(fields: [userId], references: [id])
   items     CartItem[]
   createdAt DateTime   @default(now())
@@ -189,20 +298,31 @@ model CartItem {
   @@map("cart_items")
 }
 
+// ─── ORDERS & SHIPPING ──────────────────────────────────
+
 model Order {
-  id              Int           @id @default(autoincrement())
-  userId          Int
-  user            User          @relation(fields: [userId], references: [id])
-  addressId       Int
-  address         Address       @relation(fields: [addressId], references: [id])
-  paymentId     String?       // <--- ESTO ES LO QUE FALTA
-  total           Decimal       @db.Decimal(10, 2)
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(PENDING)
-  transactionId   String?       
-  orderItems      OrderItem[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id            Int           @id @default(autoincrement())
+  userId        Int
+  user          User          @relation(fields: [userId], references: [id])
+  addressId     Int
+  address       Address       @relation(fields: [addressId], references: [id])
+  paymentId     String?
+  total         Decimal       @db.Decimal(10, 2)
+  subtotal      Decimal?      @db.Decimal(10, 2)
+  shippingCost  Decimal?      @db.Decimal(10, 2)
+  discount      Decimal?      @db.Decimal(10, 2)
+  currency      String        @default("USD")
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  transactionId String?
+  couponId      Int?
+  coupon        Coupon?       @relation(fields: [couponId], references: [id])
+  orderItems    OrderItem[]
+  shipments     Shipment[]
+  disputes      Dispute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("orders")
   @@index([userId, status])
@@ -218,10 +338,67 @@ model OrderItem {
   productVariantId Int?
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
   quantity         Int
-  price            Decimal         @db.Decimal(10, 2) 
+  price            Decimal         @db.Decimal(10, 2)
 
   @@map("order_items")
 }
+
+model Shipment {
+  id                Int            @id @default(autoincrement())
+  orderId           Int
+  order             Order          @relation(fields: [orderId], references: [id])
+  vendorId          Int?
+  vendor            Vendor?        @relation(fields: [vendorId], references: [id])
+  carrier           String?
+  trackingNumber    String?
+  trackingUrl       String?
+  status            ShipmentStatus @default(PENDING)
+  estimatedDelivery DateTime?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  events            ShipmentEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([trackingNumber])
+  @@map("shipments")
+}
+
+model ShipmentEvent {
+  id         Int      @id @default(autoincrement())
+  shipmentId Int
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status     String
+  location   String?
+  details    String?
+  occurredAt DateTime @default(now())
+
+  @@map("shipment_events")
+}
+
+// ─── COUPONS ─────────────────────────────────────────────
+
+model Coupon {
+  id          Int        @id @default(autoincrement())
+  code        String     @unique
+  type        CouponType
+  value       Decimal    @db.Decimal(10, 2)
+  minPurchase Decimal?   @db.Decimal(10, 2)
+  maxUses     Int?
+  usedCount   Int        @default(0)
+  isActive    Boolean    @default(true)
+  expiresAt   DateTime?
+  orders      Order[]
+
+  createdAt DateTime @default(now())
+
+  @@index([code])
+  @@map("coupons")
+}
+
+// ─── REVIEWS ─────────────────────────────────────────────
 
 model Review {
   id        Int      @id @default(autoincrement())
@@ -237,6 +414,87 @@ model Review {
   @@index([userId, productId])
   @@map("reviews")
 }
+
+// ─── WISHLIST ────────────────────────────────────────────
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────
+
+model Notification {
+  id     Int              @id @default(autoincrement())
+  userId Int
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   NotificationType
+  title  String
+  message String
+  data   String?          @db.Text
+  isRead Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─── DISPUTES ────────────────────────────────────────────
+
+model Dispute {
+  id          Int           @id @default(autoincrement())
+  orderId     Int
+  order       Order         @relation(fields: [orderId], references: [id])
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+  vendorId    Int?
+  vendor      Vendor?       @relation(fields: [vendorId], references: [id])
+  type        DisputeType
+  status      DisputeStatus @default(OPEN)
+  description String        @db.Text
+  resolution  String?       @db.Text
+  resolvedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+  @@map("disputes")
+}
+
+// ─── CURRENCY ────────────────────────────────────────────
+
+model Currency {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  symbol    String
+  rate      Decimal  @db.Decimal(12, 6)
+  updatedAt DateTime @updatedAt
+
+  @@map("currencies")
+}
+
+model Country {
+  id           Int    @id @default(autoincrement())
+  code         String @unique
+  name         String
+  currencyCode String
+  shippingZone String @default("INTERNATIONAL")
+
+  @@map("countries")
+}
+
+// ─── AUDIT ───────────────────────────────────────────────
 
 model AuditLog {
   id        Int      @id @default(autoincrement())
@@ -254,4 +512,3 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
-
