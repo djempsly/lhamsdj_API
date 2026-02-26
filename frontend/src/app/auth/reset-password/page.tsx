@@ -71,14 +71,14 @@
 
 "use client";
 
-import { useState, useEffect } from "react"; // Agrega useEffect
+import { Suspense, useState, useEffect } from "react";
 import { resetPassword } from "@/services/authService";
-import { useRouter, useSearchParams } from "next/navigation"; // Agrega useSearchParams
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const emailFromUrl = searchParams.get("email") || ""; // Capturamos el email
+  const emailFromUrl = searchParams.get("email") || "";
 
   const [formData, setFormData] = useState({ email: emailFromUrl, code: "", newPassword: "" });
   const [error, setError] = useState("");
@@ -153,5 +153,13 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center">Cargando...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

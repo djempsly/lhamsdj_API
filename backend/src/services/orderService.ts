@@ -137,4 +137,49 @@ export const OrderService = {
       data: { status: 'PAID', paymentStatus: 'COMPLETED' },
     });
   },
+
+  async getAllOrdersAdmin(pagination: PaginationResult) {
+    const where = {};
+    const [data, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          orderItems: { include: { product: { select: { name: true } }, productVariant: true } },
+          address: true,
+          shipments: { select: { id: true, status: true, trackingNumber: true, carrier: true } },
+          coupon: { select: { code: true } },
+        },
+        orderBy: { [pagination.sortBy]: pagination.sortOrder },
+        skip: pagination.skip,
+        take: pagination.limit,
+      }),
+      prisma.order.count({ where }),
+    ]);
+    return buildPaginatedResponse(data, total, pagination);
+  },
+
+  async updateOrderStatusAdmin(orderId: number, status: string) {
+    const valid = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+    if (!valid.includes(status)) throw new Error('Estado de orden no válido');
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new Error('Orden no encontrada');
+    return await prisma.order.update({
+      where: { id: orderId },
+      data: { status: status as any },
+      include: { user: { select: { name: true, email: true } }, orderItems: true },
+    });
+  },
+
+  async getOrdersForExport(limit: number = 5000) {
+    return prisma.order.findMany({
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { name: true, email: true } },
+        orderItems: { include: { product: { select: { name: true } } } },
+        address: true,
+      },
+    });
+  },
 };

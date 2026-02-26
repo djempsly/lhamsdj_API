@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getProducts } from "@/services/productService";
 import Image from "next/image";
@@ -8,7 +8,7 @@ import Link from "next/link";
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product, Pagination } from "@/types";
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
@@ -125,5 +125,13 @@ export default function ProductsPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center">Cargando productos...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

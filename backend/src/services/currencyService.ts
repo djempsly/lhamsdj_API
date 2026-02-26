@@ -10,13 +10,24 @@ export const CurrencyService = {
       const data = await res.json();
       if (!data.rates) throw new Error('Invalid exchange rate response');
 
+      // Decimal(12,6) permite valor absoluto < 10^6. Ajustamos tasas que vengan fuera de rango.
+      const clampRate = (r: number): number => {
+        const n = Number(r);
+        if (!Number.isFinite(n)) return 1;
+        const max = 999999.999999;
+        const min = 0.000001;
+        const clamped = Math.max(min, Math.min(max, n));
+        return Math.round(clamped * 1e6) / 1e6;
+      };
+
       const entries = Object.entries(data.rates) as [string, number][];
       let updated = 0;
       for (const [code, rate] of entries) {
+        const safeRate = clampRate(rate);
         await prisma.currency.upsert({
           where: { code },
-          update: { rate },
-          create: { code, name: code, symbol: code, rate },
+          update: { rate: safeRate },
+          create: { code, name: code, symbol: code, rate: safeRate },
         });
         updated++;
       }

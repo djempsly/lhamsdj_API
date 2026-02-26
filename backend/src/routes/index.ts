@@ -20,6 +20,8 @@ import currencyRoutes from './currencyRoutes';
 import couponRoutes from './couponRoutes';
 import wishlistRoutes from './wishlistRoutes';
 import notificationRoutes from './notificationRoutes';
+import statsRoutes from './statsRoutes';
+import auditRoutes from './auditRoutes';
 
 const router = Router();
 
@@ -51,6 +53,10 @@ router.use('/currencies', currencyRoutes);
 // Engagement
 router.use('/reviews', reviewRoutes);
 router.use('/notifications', notificationRoutes);
+
+// Admin
+router.use('/stats', statsRoutes);
+router.use('/audit', auditRoutes);
 
 // Uploads
 router.use('/uploads', uploadRoutes);

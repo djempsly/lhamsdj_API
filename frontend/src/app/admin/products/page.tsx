@@ -212,8 +212,8 @@ export default function AdminProductsPage() {
   // Función para cargar datos
   const loadProducts = async () => {
     setLoading(true);
-    const data = await getProducts();
-    setProducts(data);
+    const res = await getProducts();
+    setProducts(res.data ?? []);
     setLoading(false);
   };
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart, Store, Tag, FileText, Package } from "lucide-react";
 
 const menuItems = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -10,6 +10,10 @@ const menuItems = [
   { name: "Categorías", href: "/admin/categories", icon: List },
   { name: "Órdenes", href: "/admin/orders", icon: ShoppingCart },
   { name: "Usuarios", href: "/admin/users", icon: Users },
+  { name: "Vendedores", href: "/admin/vendors", icon: Store },
+  { name: "Proveedores", href: "/admin/suppliers", icon: Package },
+  { name: "Cupones", href: "/admin/coupons", icon: Tag },
+  { name: "Audit log", href: "/admin/audit", icon: FileText },
 ];
 
 export default function AdminSidebar() {

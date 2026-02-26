@@ -1,15 +1,15 @@
 import { Router } from 'express';
-import { createOrder, getMyOrders, getOrderById, payOrder  } from '../controllers/orderController';
-import { authenticate } from '../middleware/authMiddleware';
-
-//import { createOrder, getMyOrders, getOrderById, payOrder } from '../controllers/orderController'; // <--- Importar payOrder
-
+import { createOrder, getMyOrders, getOrderById, payOrder, adminGetAllOrders, adminUpdateOrderStatus, adminExportOrders } from '../controllers/orderController';
+import { authenticate, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
 
-router.post('/', authenticate, createOrder); // Checkout
-router.get('/', authenticate, getMyOrders);  // Historial
-router.get('/:id', authenticate, getOrderById); // Detalle
+router.post('/', authenticate, createOrder);
+router.get('/', authenticate, getMyOrders);
+router.get('/admin/all', authenticate, requireAdmin, adminGetAllOrders);
+router.get('/admin/export', authenticate, requireAdmin, adminExportOrders);
+router.patch('/admin/:id/status', authenticate, requireAdmin, adminUpdateOrderStatus);
+router.get('/:id', authenticate, getOrderById);
 
 
 

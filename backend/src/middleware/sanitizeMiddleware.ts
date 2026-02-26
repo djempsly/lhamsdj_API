@@ -69,14 +69,10 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
   }
 
   if (req.body && typeof req.body === 'object') {
-    req.body = sanitizeObject(req.body);
+    req.body = sanitizeObject(req.body as Record<string, unknown>) as Request['body'];
   }
-  if (req.query && typeof req.query === 'object') {
-    req.query = sanitizeObject(req.query) as any;
-  }
-  if (req.params && typeof req.params === 'object') {
-    req.params = sanitizeObject(req.params) as any;
-  }
+  // req.query y req.params en Express son de solo lectura (getters); no se pueden reasignar.
+  // Solo se valida con deepCheckSql arriba y se rechaza si hay patrones peligrosos.
 
   next();
 };

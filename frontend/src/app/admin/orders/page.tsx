@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllOrders, updateOrderStatus } from "@/services/adminService";
-import { Package, Truck, CheckCircle } from "lucide-react";
+import { getAllOrders, updateOrderStatus, downloadOrdersCsv } from "@/services/adminService";
+import { Truck, CheckCircle, Download } from "lucide-react";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -11,7 +11,7 @@ export default function AdminOrdersPage() {
   const loadOrders = async () => {
     setLoading(true);
     const res = await getAllOrders();
-    if (res.success) setOrders(res.data);
+    if (res.success) setOrders(Array.isArray(res.data) ? res.data : []);
     setLoading(false);
   };
 
@@ -27,9 +27,22 @@ export default function AdminOrdersPage() {
 
   if (loading) return <div className="p-8">Cargando órdenes...</div>;
 
+  const handleExport = async () => {
+    try {
+      await downloadOrdersCsv();
+    } catch (e) {
+      alert("Error al exportar. Inicia sesión como admin.");
+    }
+  };
+
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Órdenes de Compra</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Órdenes de Compra</h1>
+        <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
+          <Download size={18} /> Exportar CSV
+        </button>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-left">

@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId"); // Si lo enviamos en la URL
+  const orderId = searchParams.get("orderId");
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4 bg-gray-50">
@@ -46,5 +47,13 @@ export default function SuccessPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center">Cargando...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }
