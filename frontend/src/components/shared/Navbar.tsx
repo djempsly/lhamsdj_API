@@ -103,10 +103,10 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link href="/login" className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900">
+                <Link href="/auth/login" className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900">
                   Entrar
                 </Link>
-                <Link href="/register" className="px-3 py-1.5 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+                <Link href="/auth/register" className="px-3 py-1.5 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800">
                   Registrarse
                 </Link>
               </div>

@@ -54,7 +54,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50`}>
+      <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50`} style={{ backgroundColor: '#f9fafb' }}>
         <Navbar />
         {/* El children es el contenido de cada página (Home, Login, etc.) */}
         <div className="flex-grow">
