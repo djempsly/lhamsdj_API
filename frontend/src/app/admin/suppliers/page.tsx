@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getSuppliers } from "@/services/adminService";
 import { Package } from "lucide-react";
 
 export default function AdminSuppliersPage() {
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,20 +24,20 @@ export default function AdminSuppliersPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Proveedores (dropshipping)</h1>
+      <h1 className="text-3xl font-bold mb-6">{t("suppliersDropshipping")}</h1>
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-4 font-medium text-gray-500">ID</th>
-              <th className="p-4 font-medium text-gray-500">Nombre</th>
-              <th className="p-4 font-medium text-gray-500">Tipo</th>
-              <th className="p-4 font-medium text-gray-500">Estado</th>
-              <th className="p-4 font-medium text-gray-500">Productos vinculados</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("id")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("name")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("type")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("status")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("linkedProducts")}</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={5} className="p-8 text-center text-gray-500">Cargando...</td></tr>}
+            {loading && <tr><td colSpan={5} className="p-8 text-center text-gray-500">{tCommon("loading")}</td></tr>}
             {!loading && suppliers.map((s) => (
               <tr key={s.id} className="border-b hover:bg-gray-50">
                 <td className="p-4 font-mono">{s.id}</td>
@@ -49,7 +52,7 @@ export default function AdminSuppliersPage() {
               </tr>
             ))}
             {!loading && suppliers.length === 0 && (
-              <tr><td colSpan={5} className="p-8 text-center text-gray-500">No hay proveedores. Crea uno desde la API (POST /suppliers).</td></tr>
+              <tr><td colSpan={5} className="p-8 text-center text-gray-500">{t("noSuppliers")}</td></tr>
             )}
           </tbody>
         </table>

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { CouponService } from '../services/couponService';
 import { z } from 'zod';
 
@@ -57,7 +58,7 @@ export const toggleCoupon = async (req: Request, res: Response) => {
 export const deleteCoupon = async (req: Request, res: Response) => {
   try {
     await CouponService.delete(Number(req.params.id));
-    res.json({ success: true, message: 'Cupón eliminado' });
+    res.json({ success: true, message: t(req.locale, 'coupon.deleted') });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }

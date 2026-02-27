@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { loginUser } from "@/services/authService";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
@@ -36,7 +38,7 @@ export default function LoginPage() {
         router.push("/");
       }
     } else {
-      setError(res.message || "Credenciales inválidas");
+      setError(res.message || t("invalidCredentials"));
     }
   };
 
@@ -44,8 +46,8 @@ export default function LoginPage() {
     <div className="flex min-h-[calc(100vh-150px)] items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Bienvenido</h2>
-          <p className="text-gray-500 mt-2">Ingresa a tu cuenta para continuar</p>
+          <h2 className="text-3xl font-bold text-gray-900">{t("welcome")}</h2>
+          <p className="text-gray-500 mt-2">{t("loginSubtitle")}</p>
         </div>
 
         {error && (
@@ -70,7 +72,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
             <input
               type="password"
               name="password"
@@ -86,7 +88,7 @@ export default function LoginPage() {
                 href="/auth/forgot-password" 
                 className="text-xs text-blue-600 hover:underline font-medium"
               >
-                ¿Olvidaste tu contraseña?
+                {t("forgotPassword")}
               </Link>
             </div>
 
@@ -106,14 +108,14 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition duration-300 disabled:opacity-50"
           >
-            {loading ? "Entrando..." : "Iniciar Sesión"}
+            {loading ? t("loggingIn") : t("loginButton")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          ¿No tienes cuenta?{" "}
-          <Link href="/auth/register" className="text-blue-600 font-semibold hover:underline">
-            Regístrate gratis
+          {t("noAccount")}{" "}
+          <Link href="/auth/register" prefetch={false} className="text-blue-600 font-semibold hover:underline">
+            {t("registerFree")}
           </Link>
         </p>
       </div>

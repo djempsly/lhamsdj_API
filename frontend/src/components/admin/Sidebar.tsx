@@ -2,28 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart, Store, Tag, FileText, Package } from "lucide-react";
-
-const menuItems = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "Productos", href: "/admin/products", icon: ShoppingBag },
-  { name: "Categorías", href: "/admin/categories", icon: List },
-  { name: "Órdenes", href: "/admin/orders", icon: ShoppingCart },
-  { name: "Usuarios", href: "/admin/users", icon: Users },
-  { name: "Vendedores", href: "/admin/vendors", icon: Store },
-  { name: "Proveedores", href: "/admin/suppliers", icon: Package },
-  { name: "Cupones", href: "/admin/coupons", icon: Tag },
-  { name: "Audit log", href: "/admin/audit", icon: FileText },
-];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const t = useTranslations("admin.sidebar");
+
+  const menuItems = [
+    { nameKey: "dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    { nameKey: "products", href: "/admin/products", icon: ShoppingBag },
+    { nameKey: "categories", href: "/admin/categories", icon: List },
+    { nameKey: "orders", href: "/admin/orders", icon: ShoppingCart },
+    { nameKey: "users", href: "/admin/users", icon: Users },
+    { nameKey: "vendors", href: "/admin/vendors", icon: Store },
+    { nameKey: "suppliers", href: "/admin/suppliers", icon: Package },
+    { nameKey: "coupons", href: "/admin/coupons", icon: Tag },
+    { nameKey: "auditLog", href: "/admin/audit", icon: FileText },
+  ];
 
   return (
     <aside className="w-64 bg-black text-white min-h-screen p-4 hidden md:block">
       <div className="mb-8 px-2">
-        <h1 className="text-xl font-bold">Admin Panel</h1>
-        <p className="text-xs text-gray-400">LhamsDJ Store</p>
+        <h1 className="text-xl font-bold">{t("adminPanel")}</h1>
+        <p className="text-xs text-gray-400">{t("storeName")}</p>
       </div>
       <nav className="space-y-2">
         {menuItems.map((item) => {
@@ -37,7 +39,7 @@ export default function AdminSidebar() {
               }`}
             >
               <item.icon className="w-5 h-5" />
-              {item.name}
+              {t(item.nameKey)}
             </Link>
           );
         })}

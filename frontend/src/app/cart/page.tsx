@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { getCart, updateCartItem, removeCartItem } from "@/services/cartService";
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 
 export default function CartPage() {
+  const t = useTranslations("cart");
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false); // Para bloquear botones mientras actualiza
@@ -36,7 +38,7 @@ export default function CartPage() {
   };
 
   const handleRemove = async (itemId: number) => {
-    if (!confirm("¿Eliminar este producto?")) return;
+    if (!confirm(t("removeProduct"))) return;
     setUpdating(true);
     await removeCartItem(itemId);
     await loadCart();
@@ -50,7 +52,7 @@ export default function CartPage() {
     return acc + price * item.quantity;
   }, 0) || 0;
 
-  if (loading) return <div className="p-20 text-center">Cargando carrito...</div>;
+  if (loading) return <div className="p-20 text-center">{t("loadingCart")}</div>;
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -58,10 +60,10 @@ export default function CartPage() {
         <div className="bg-gray-100 p-6 rounded-full mb-4">
           <ShoppingBag size={48} className="text-gray-400" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Tu carrito está vacío</h1>
-        <p className="text-gray-500 mb-6">Parece que aún no has agregado nada.</p>
+        <h1 className="text-2xl font-bold mb-2">{t("empty")}</h1>
+        <p className="text-gray-500 mb-6">{t("emptyDesc")}</p>
         <Link href="/" className="bg-black text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 transition">
-          Ir a Comprar
+          {t("goShopping")}
         </Link>
       </div>
     );
@@ -69,7 +71,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-8">Carrito de Compras</h1>
+      <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -93,8 +95,8 @@ export default function CartPage() {
                     <h3 className="font-bold text-lg">{item.product.name}</h3>
                     {item.productVariant && (
                       <p className="text-sm text-gray-500">
-                        {item.productVariant.size && `Talla: ${item.productVariant.size} `}
-                        {item.productVariant.color && `| Color: ${item.productVariant.color}`}
+                        {item.productVariant.size && `${t("size")}: ${item.productVariant.size} `}
+                        {item.productVariant.color && `| ${t("color")}: ${item.productVariant.color}`}
                       </p>
                     )}
                     <p className="font-semibold text-gray-900 mt-1">${price}</p>
@@ -136,21 +138,21 @@ export default function CartPage() {
         {/* RESUMEN DE PAGO (Derecha) */}
         <div className="lg:col-span-1">
           <div className="bg-gray-50 p-6 rounded-xl border sticky top-24">
-            <h2 className="text-xl font-bold mb-4">Resumen del Pedido</h2>
+            <h2 className="text-xl font-bold mb-4">{t("orderSummary")}</h2>
             
             <div className="space-y-2 mb-4 border-b pb-4">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
+                <span className="text-gray-600">{t("subtotal")}</span>
                 <span className="font-medium">${total.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Envío</span>
-                <span className="font-medium text-green-600">Gratis</span>
+                <span className="text-gray-600">{t("shipping")}</span>
+                <span className="font-medium text-green-600">{t("free")}</span>
               </div>
             </div>
 
             <div className="flex justify-between text-xl font-bold mb-6">
-              <span>Total</span>
+              <span>{t("total")}</span>
               <span>${total.toFixed(2)}</span>
             </div>
 
@@ -158,11 +160,11 @@ export default function CartPage() {
               href="/checkout" 
               className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2"
             >
-              Continuar al Pago <ArrowRight size={20} />
+              {t("checkout")} <ArrowRight size={20} />
             </Link>
             
             <p className="text-xs text-gray-400 text-center mt-4">
-              Pagos seguros con Stripe y PayPal
+              {t("securePayments")}
             </p>
           </div>
         </div>

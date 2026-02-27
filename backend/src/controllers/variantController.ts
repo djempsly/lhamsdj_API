@@ -26,6 +26,7 @@
 
 
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { VariantService } from '../services/variantService';
 import { createVariantSchema, updateVariantSchema } from '../validation/variantSchema';
 
@@ -53,8 +54,8 @@ export const updateVariant = async (req: Request, res: Response) => {
 export const deleteVariant = async (req: Request, res: Response) => {
   try {
     await VariantService.delete(Number(req.params.id));
-    res.json({ success: true, message: 'Variante eliminada' });
+    res.json({ success: true, message: t(req.locale, 'variant.deleted') });
   } catch (error: any) {
-    res.status(400).json({ success: false, message: 'No se pudo eliminar (¿Tiene pedidos?)' });
+    res.status(400).json({ success: false, message: t(req.locale, 'variant.hasOrders') });
   }
 };

@@ -68,7 +68,7 @@ export const StatsService = {
         activeSuppliers: totalSuppliers,
         pendingVendors,
       },
-      ordersByStatus: ordersByStatus.reduce((acc: Record<string, number>, x) => { acc[x.status] = x._count; return acc; }, {}),
+      ordersByStatus: ordersByStatus.reduce<Record<string, number>>((acc, x) => { acc[x.status] = x._count; return acc; }, {}),
       topProducts: topProductsWithNames,
       recentOrders: recentOrders.map((o) => ({ id: o.id, total: Number(o.total), status: o.status, userName: o.user.name, items: o._count.orderItems, createdAt: o.createdAt })),
     };

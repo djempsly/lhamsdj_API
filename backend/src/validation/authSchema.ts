@@ -2,30 +2,30 @@ import { z } from 'zod';
 
 const passwordSchema = z
   .string()
-  .min(8, 'La contraseña debe tener al menos 8 caracteres')
-  .regex(/[A-Z]/, 'Debe contener al menos una letra mayúscula')
-  .regex(/[a-z]/, 'Debe contener al menos una letra minúscula')
-  .regex(/[0-9]/, 'Debe contener al menos un número')
-  .regex(/[\W_]/, 'Debe contener al menos un símbolo');
+  .min(8, 'validation.passwordMin')
+  .regex(/[A-Z]/, 'validation.passwordUpper')
+  .regex(/[a-z]/, 'validation.passwordLower')
+  .regex(/[0-9]/, 'validation.passwordNumber')
+  .regex(/[\W_]/, 'validation.passwordSymbol');
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'El nombre es muy corto').max(100, 'El nombre es muy largo'),
-  email: z.string().email('Email inválido').max(255),
+  name: z.string().min(2, 'validation.nameTooShort').max(100, 'validation.nameTooLong'),
+  email: z.string().email('validation.emailInvalid').max(255),
   password: passwordSchema,
-  phone: z.string().min(7).max(20).optional(),
+  phone: z.string().min(7).max(20).optional().or(z.literal('')).transform(v => v || undefined),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1, 'Contraseña requerida'),
+  email: z.string().email('validation.emailInvalid'),
+  password: z.string().min(1, 'validation.passwordRequired'),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email('validation.emailInvalid'),
 });
 
 export const resetPasswordSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email('validation.emailInvalid'),
   code: z.string().length(6),
   newPassword: passwordSchema,
 });

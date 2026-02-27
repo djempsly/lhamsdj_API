@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { CurrencyService } from '../services/currencyService';
 import { z } from 'zod';
 
@@ -27,10 +28,10 @@ export const convertCurrency = async (req: Request, res: Response) => {
   }
 };
 
-export const syncRates = async (_req: Request, res: Response) => {
+export const syncRates = async (req: Request, res: Response) => {
   try {
     const count = await CurrencyService.syncRates();
-    res.json({ success: true, message: `${count} tasas actualizadas` });
+    res.json({ success: true, message: t(req.locale, 'currency.ratesUpdated', { count }) });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -45,10 +46,10 @@ export const getCountries = async (_req: Request, res: Response) => {
   }
 };
 
-export const seedCountries = async (_req: Request, res: Response) => {
+export const seedCountries = async (req: Request, res: Response) => {
   try {
     const count = await CurrencyService.seedCountries();
-    res.json({ success: true, message: `${count} países creados/actualizados` });
+    res.json({ success: true, message: t(req.locale, 'currency.countriesUpdated', { count }) });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

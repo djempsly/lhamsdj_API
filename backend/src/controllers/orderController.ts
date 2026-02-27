@@ -1,72 +1,106 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { OrderService } from '../services/orderService';
 import { createOrderSchema } from '../validation/orderSchema';
-import { parsePagination } from '../utils/pagination';
+import { adminUpdateOrderStatusSchema, adminExportQuerySchema } from '../validation/adminSchema';
+import { parsePagination, PaginationQuery } from '../utils/pagination';
+import { audit, AuditActions } from '../lib/audit';
+import { z } from 'zod';
 
 export const createOrder = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id!;
     const data = createOrderSchema.parse(req.body);
     const order = await OrderService.createOrder(userId, data);
-    res.status(201).json({ success: true, message: 'Orden creada exitosamente', data: order });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(201).json({ success: true, message: t(req.locale, 'order.created'), data: order });
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.issues[0]?.message ?? 'Validation error' });
+    }
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    res.status(400).json({ success: false, message: msg });
   }
 };
 
 export const getMyOrders = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id!;
-    const pagination = parsePagination(req.query as any, 'createdAt');
+    const pagination = parsePagination(req.query as PaginationQuery, 'createdAt');
     const result = await OrderService.getMyOrders(userId, pagination);
     res.json({ success: true, ...result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: msg });
   }
 };
 
 export const getOrderById = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id!;
-    const { id } = req.params;
-    const order = await OrderService.getOrderById(userId, Number(id));
-    if (!order) return res.status(404).json({ success: false, message: 'Orden no encontrada' });
+    const orderId = Number(req.params.id);
+    if (isNaN(orderId)) return res.status(400).json({ success: false, message: t(req.locale, 'validation.invalidOrderId') });
+
+    const order = await OrderService.getOrderById(userId, orderId);
+    if (!order) return res.status(404).json({ success: false, message: t(req.locale, 'order.notFound') });
     res.json({ success: true, data: order });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: msg });
   }
 };
 
 export const payOrder = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id!;
-    const { id } = req.params;
-    const order = await OrderService.markAsPaid(userId, Number(id));
-    res.json({ success: true, message: 'Pago registrado', data: order });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+    const orderId = Number(req.params.id);
+    if (isNaN(orderId)) return res.status(400).json({ success: false, message: t(req.locale, 'validation.invalidOrderId') });
+
+    const order = await OrderService.markAsPaid(userId, orderId);
+    res.json({ success: true, message: t(req.locale, 'order.paymentRecorded'), data: order });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    const status = msg.includes('not found') || msg.includes('no encontrada') ? 404 : 400;
+    res.status(status).json({ success: false, message: msg });
   }
 };
 
 export const adminGetAllOrders = async (req: Request, res: Response) => {
   try {
-    const pagination = parsePagination(req.query as any, 'createdAt');
+    const pagination = parsePagination(req.query as PaginationQuery, 'createdAt');
     const result = await OrderService.getAllOrdersAdmin(pagination);
     res.json({ success: true, ...result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: msg });
   }
 };
 
 export const adminUpdateOrderStatus = async (req: Request, res: Response) => {
   try {
-    const id = Number(req.params.id);
-    const { status } = req.body as { status: string };
-    if (!status) return res.status(400).json({ success: false, message: 'status es requerido' });
-    const order = await OrderService.updateOrderStatusAdmin(id, status);
-    res.json({ success: true, message: 'Estado actualizado', data: order });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+    const orderId = Number(req.params.id);
+    if (isNaN(orderId)) return res.status(400).json({ success: false, message: t(req.locale, 'validation.invalidOrderId') });
+
+    const { status } = adminUpdateOrderStatusSchema.parse(req.body);
+    const order = await OrderService.updateOrderStatusAdmin(orderId, status);
+
+    await audit({
+      userId: req.user?.id,
+      action: AuditActions.ADMIN_ORDER_STATUS_CHANGED,
+      entity: 'Order',
+      entityId: orderId,
+      details: `Status changed to ${status}`,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    res.json({ success: true, message: t(req.locale, 'order.statusUpdated'), data: order });
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.issues[0]?.message ?? 'Validation error' });
+    }
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    const status = msg.includes('not found') || msg.includes('no encontrada') ? 404 : 400;
+    res.status(status).json({ success: false, message: msg });
   }
 };
 
@@ -77,9 +111,8 @@ function escapeCsv(s: string): string {
 
 export const adminExportOrders = async (req: Request, res: Response) => {
   try {
-    const format = (req.query.format as string) || 'csv';
-    const limit = Math.min(Number(req.query.limit) || 5000, 10000);
-    if (format !== 'csv') return res.status(400).json({ success: false, message: 'Solo format=csv está soportado' });
+    const { format, limit } = adminExportQuerySchema.parse(req.query);
+    if (format !== 'csv') return res.status(400).json({ success: false, message: t(req.locale, 'order.csvOnly') });
 
     const orders = await OrderService.getOrdersForExport(limit);
     const headers = ['id', 'userId', 'userName', 'userEmail', 'status', 'paymentStatus', 'subtotal', 'shippingCost', 'discount', 'total', 'address', 'createdAt'];
@@ -98,10 +131,24 @@ export const adminExportOrders = async (req: Request, res: Response) => {
       o.createdAt.toISOString(),
     ]);
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+    await audit({
+      userId: req.user?.id,
+      action: AuditActions.ADMIN_ORDERS_EXPORTED,
+      entity: 'Order',
+      details: `Exported ${orders.length} orders as CSV`,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename=orders-${new Date().toISOString().slice(0, 10)}.csv`);
     res.send('\uFEFF' + csv);
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.issues[0]?.message ?? 'Validation error' });
+    }
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: msg });
   }
 };

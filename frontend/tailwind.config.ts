@@ -1,59 +1,38 @@
-
-// import type { Config } from "tailwindcss";
-
-// const config: Config = {
-//   content: [
-//     // 👇 ESTA LÍNEA ES LA QUE HACE QUE FUNCIONEN LOS ESTILOS EN TU ESTRUCTURA
-//     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-//   ],
-//   theme: {
-//     extend: {},
-//   },
-//   plugins: [],
-// };
-// export default config;
-
-
-// import type { Config } from "tailwindcss";
-
-// const config: Config = {
-//   content: [
-//     // 👇 ESTO ES LO IMPORTANTE: Que apunte a ./src/...
-//     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-//     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-//     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-//   ],
-//   theme: {
-//     extend: {
-//       backgroundImage: {
-//         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-//         "gradient-conic":
-//           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-//       },
-//     },
-//   },
-//   plugins: [],
-// };
-// export default config;
-
-
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    // 👇 ESTAS SON LAS RUTAS QUE LE DICEN A TAILWIND DÓNDE BUSCAR
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}", 
-    "./src/**/*.{js,ts,jsx,tsx,mdx}", // <--- Agrega esta "comodín" por seguridad
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        brand: {
+          50: '#f0f4ff',
+          100: '#dbe4ff',
+          500: '#4c6ef5',
+          600: '#3b5bdb',
+          700: '#364fc7',
+          900: '#1b2a6b',
+        },
+      },
+      animation: {
+        'slide-up': 'slideUp 0.3s ease-out',
+        'slide-down': 'slideDown 0.2s ease-out',
+      },
+      keyframes: {
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideDown: {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+    },
   },
   plugins: [],
 };
+
 export default config;
-
-
-

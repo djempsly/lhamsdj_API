@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { ReviewService } from '../services/reviewService';
 import { createReviewSchema } from '../validation/reviewSchema';
 import { parsePagination } from '../utils/pagination';
@@ -31,7 +32,7 @@ export const deleteReview = async (req: Request, res: Response) => {
     const userRole = req.user?.role!;
     const { id } = req.params;
     await ReviewService.delete(userId, userRole, Number(id));
-    res.json({ success: true, message: 'Reseña eliminada' });
+    res.json({ success: true, message: t(req.locale, 'review.deleted') });
   } catch (error: any) {
     res.status(403).json({ success: false, message: error.message });
   }

@@ -1,9 +1,12 @@
 import rateLimit from 'express-rate-limit';
+import { t } from '../i18n/t';
 
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { success: false, message: 'Demasiados intentos de autenticación. Intenta en 15 minutos.' },
+  handler: (req: any, res: any) => {
+    res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyAuth') });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -11,7 +14,9 @@ export const authLimiter = rateLimit({
 export const apiPublicLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 200,
-  message: { success: false, message: 'Demasiadas peticiones. Intenta en un momento.' },
+  handler: (req: any, res: any) => {
+    res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyRequests') });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -19,7 +24,9 @@ export const apiPublicLimiter = rateLimit({
 export const apiPrivateLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 100,
-  message: { success: false, message: 'Demasiadas peticiones. Intenta en un momento.' },
+  handler: (req: any, res: any) => {
+    res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyRequests') });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -27,7 +34,9 @@ export const apiPrivateLimiter = rateLimit({
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
-  message: { success: false, message: 'Demasiadas subidas. Intenta en 15 minutos.' },
+  handler: (req: any, res: any) => {
+    res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyUploads') });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -35,7 +44,9 @@ export const uploadLimiter = rateLimit({
 export const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
-  message: { success: false, message: 'Demasiados intentos de recuperación. Intenta en 1 hora.' },
+  handler: (req: any, res: any) => {
+    res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyResets') });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });

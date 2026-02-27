@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getAuditLogs } from "@/services/adminService";
 import { FileText } from "lucide-react";
 
 export default function AdminAuditPage() {
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -28,16 +31,16 @@ export default function AdminAuditPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Audit log</h1>
+      <h1 className="text-3xl font-bold mb-6">{t("auditLog")}</h1>
       <div className="mb-4 flex gap-2 flex-wrap">
         <input
-          placeholder="Filtrar por acción"
+          placeholder={t("filterAction")}
           value={actionFilter}
           onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
           className="border rounded-lg px-3 py-2"
         />
         <input
-          placeholder="Filtrar por entidad"
+          placeholder={t("filterEntity")}
           value={entityFilter}
           onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
           className="border rounded-lg px-3 py-2"
@@ -47,17 +50,17 @@ export default function AdminAuditPage() {
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-4 font-medium text-gray-500">Fecha</th>
-              <th className="p-4 font-medium text-gray-500">Usuario ID</th>
-              <th className="p-4 font-medium text-gray-500">Acción</th>
-              <th className="p-4 font-medium text-gray-500">Entidad</th>
-              <th className="p-4 font-medium text-gray-500">ID entidad</th>
-              <th className="p-4 font-medium text-gray-500">Detalles</th>
-              <th className="p-4 font-medium text-gray-500">IP</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("date")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("userId")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("action")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("entity")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("entityId")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("details")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("ip")}</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={7} className="p-8 text-center text-gray-500">Cargando...</td></tr>}
+            {loading && <tr><td colSpan={7} className="p-8 text-center text-gray-500">{tCommon("loading")}</td></tr>}
             {!loading && logs.map((log) => (
               <tr key={log.id} className="border-b hover:bg-gray-50">
                 <td className="p-4 text-gray-600">{new Date(log.createdAt).toLocaleString()}</td>
@@ -70,15 +73,15 @@ export default function AdminAuditPage() {
               </tr>
             ))}
             {!loading && logs.length === 0 && (
-              <tr><td colSpan={7} className="p-8 text-center text-gray-500">No hay registros.</td></tr>
+              <tr><td colSpan={7} className="p-8 text-center text-gray-500">{t("noRecords")}</td></tr>
             )}
           </tbody>
         </table>
         {totalPages > 1 && (
           <div className="p-4 border-t flex justify-center gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 border rounded disabled:opacity-50">Anterior</button>
-            <span className="px-3 py-1">Página {page} de {totalPages}</span>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-1 border rounded disabled:opacity-50">Siguiente</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 border rounded disabled:opacity-50">{tCommon("previous")}</button>
+            <span className="px-3 py-1">{tCommon("page", { current: page, total: totalPages })}</span>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-1 border rounded disabled:opacity-50">{tCommon("next")}</button>
           </div>
         )}
       </div>

@@ -3,32 +3,33 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Link from "next/link"; 
-
-// Datos de ejemplo (Luego puedes poner fotos reales de banners)
-const slides = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
-    title: "Nueva Colección 2025",
-    description: "Estilo y tecnología en un solo lugar.",
-  },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop",
-    title: "Ofertas de Electrónica",
-    description: "Hasta 50% de descuento en gadgets.",
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop",
-    title: "Moda Urbana",
-    description: "Vístete con las últimas tendencias.",
-  },
-];
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function Carousel() {
+  const t = useTranslations("home");
   const [current, setCurrent] = useState(0);
+
+  const slides = [
+    {
+      id: 1,
+      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
+      title: t("slide1Title"),
+      description: t("slide1Desc"),
+    },
+    {
+      id: 2,
+      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop",
+      title: t("slide2Title"),
+      description: t("slide2Desc"),
+    },
+    {
+      id: 3,
+      image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop",
+      title: t("slide3Title"),
+      description: t("slide3Desc"),
+    },
+  ];
 
   // Auto-play cada 5 segundos
   useEffect(() => {
@@ -71,7 +72,7 @@ export default function Carousel() {
 
             <Link href="/products">
               <button className="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition">
-                Ver Ofertas
+                {t("viewOffers")}
               </button>
             </Link>
             </div>

@@ -1,17 +1,25 @@
 import { Request, Response } from 'express';
 import { AuditService } from '../services/auditService';
-import { parsePagination } from '../utils/pagination';
+import { parsePagination, PaginationQuery } from '../utils/pagination';
+import { auditLogQuerySchema } from '../validation/adminSchema';
+import { z } from 'zod';
 
 export const getAuditLogs = async (req: Request, res: Response) => {
   try {
-    const pagination = parsePagination(req.query as any, 'createdAt');
-    const filters: { action?: string; entity?: string; userId?: number } = {};
-    if (typeof req.query.action === 'string') filters.action = req.query.action;
-    if (typeof req.query.entity === 'string') filters.entity = req.query.entity;
-    if (req.query.userId != null) filters.userId = Number(req.query.userId);
+    const pagination = parsePagination(req.query as PaginationQuery, 'createdAt');
+    const parsed = auditLogQuerySchema.parse(req.query);
+
+    const filters = Object.fromEntries(
+      Object.entries(parsed).filter(([, v]) => v !== undefined)
+    ) as { action?: string; entity?: string; userId?: number };
+
     const result = await AuditService.list(pagination, Object.keys(filters).length ? filters : undefined);
     res.json({ success: true, ...result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.issues[0]?.message ?? 'Validation error' });
+    }
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: msg });
   }
 };

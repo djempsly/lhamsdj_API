@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { NotificationService } from '../services/notificationService';
 
 export const getMyNotifications = async (req: Request, res: Response) => {
@@ -23,7 +24,7 @@ export const getUnreadCount = async (req: Request, res: Response) => {
 export const markAsRead = async (req: Request, res: Response) => {
   try {
     await NotificationService.markAsRead(req.user?.id!, Number(req.params.id));
-    res.json({ success: true, message: 'Notificación marcada como leída' });
+    res.json({ success: true, message: t(req.locale, 'notification.markedRead') });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -32,7 +33,7 @@ export const markAsRead = async (req: Request, res: Response) => {
 export const markAllAsRead = async (req: Request, res: Response) => {
   try {
     await NotificationService.markAllAsRead(req.user?.id!);
-    res.json({ success: true, message: 'Todas las notificaciones marcadas como leídas' });
+    res.json({ success: true, message: t(req.locale, 'notification.allMarkedRead') });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

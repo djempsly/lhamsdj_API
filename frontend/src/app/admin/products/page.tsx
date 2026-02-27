@@ -199,13 +199,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { getProducts, deleteProduct } from "@/services/productService";
 import { Plus, Trash2, Pencil, Package } from "lucide-react";
-import { Product } from "@/types"; // Asegúrate de tener tus tipos definidos
+import { Product } from "@/types";
 
 export default function AdminProductsPage() {
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -222,28 +225,28 @@ export default function AdminProductsPage() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Estás seguro de eliminar este producto?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     
     const res = await deleteProduct(id);
     if (res.success) {
-      alert("Producto eliminado");
+      alert(t("productDeleted"));
       loadProducts(); // Recargar la tabla
     } else {
-      alert("Error al eliminar: " + res.message);
+      alert(t("deleteError") + ": " + res.message);
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Cargando productos...</div>;
+  if (loading) return <div className="p-8 text-center">{t("loadingProducts")}</div>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Mis Productos</h1>
+        <h1 className="text-3xl font-bold">{t("myProducts")}</h1>
         <Link 
           href="/admin/products/create" 
           className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition"
         >
-          <Plus size={20} /> Nuevo Producto
+          <Plus size={20} /> {t("newProduct")}
         </Link>
       </div>
 
@@ -251,11 +254,11 @@ export default function AdminProductsPage() {
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-4 font-medium text-gray-500">Imagen</th>
-              <th className="p-4 font-medium text-gray-500">Nombre</th>
-              <th className="p-4 font-medium text-gray-500">Precio</th>
-              <th className="p-4 font-medium text-gray-500">Stock</th>
-              <th className="p-4 font-medium text-gray-500 text-right">Acciones</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("image")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("name")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("price")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("stock")}</th>
+              <th className="p-4 font-medium text-gray-500 text-right">{tCommon("actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -276,7 +279,7 @@ export default function AdminProductsPage() {
                 {/* NOMBRE Y CATEGORÍA */}
                 <td className="p-4">
                   <p className="font-bold text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-500">ID: {product.id}</p>
+                  <p className="text-xs text-gray-500">{tCommon("id")}: {product.id}</p>
                 </td>
 
                 {/* PRECIO */}
@@ -319,7 +322,7 @@ export default function AdminProductsPage() {
             {products.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-10 text-center text-gray-500">
-                  No tienes productos aún. ¡Crea el primero!
+                  {t("noProductsYet")}
                 </td>
               </tr>
             )}

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getAllUsers, toggleUserStatus } from "@/services/adminService";
 import { UserCheck, UserX, Shield } from "lucide-react";
 
 export default function AdminUsersPage() {
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,20 +27,20 @@ export default function AdminUsersPage() {
     if (res.success) loadUsers();
   };
 
-  if (loading) return <div className="p-8">Cargando usuarios...</div>;
+  if (loading) return <div className="p-8">{t("loadingUsers")}</div>;
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Usuarios Registrados</h1>
+      <h1 className="text-3xl font-bold mb-8">{t("registeredUsers")}</h1>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-4 font-medium text-gray-500">Usuario</th>
-              <th className="p-4 font-medium text-gray-500">Rol</th>
-              <th className="p-4 font-medium text-gray-500">Estado</th>
-              <th className="p-4 font-medium text-gray-500 text-right">Acciones</th>
+              <th className="p-4 font-medium text-gray-500">{t("user")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("role")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("status")}</th>
+              <th className="p-4 font-medium text-gray-500 text-right">{tCommon("actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -53,14 +56,14 @@ export default function AdminUsersPage() {
                       <Shield size={12} /> ADMIN
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-600">Cliente</span>
+                    <span className="text-sm text-gray-600">{t("client")}</span>
                   )}
                 </td>
                 <td className="p-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                     user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                   }`}>
-                    {user.isActive ? 'Activo' : 'Inactivo'}
+                    {user.isActive ? tCommon("active") : tCommon("inactive")}
                   </span>
                 </td>
                 <td className="p-4 text-right">
@@ -70,7 +73,7 @@ export default function AdminUsersPage() {
                       className={`p-2 rounded-md transition ${
                         user.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'
                       }`}
-                      title={user.isActive ? "Desactivar cuenta" : "Activar cuenta"}
+                      title={user.isActive ? t("deactivateAccount") : t("activateAccount")}
                     >
                       {user.isActive ? <UserX size={20} /> : <UserCheck size={20} />}
                     </button>

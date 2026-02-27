@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { CategoryService } from '../services/categoryService';
 import { createCategorySchema, updateCategorySchema } from '../validation/categorySchema';
 
@@ -27,7 +28,7 @@ export const getCategoryBySlug = async (req: Request, res: Response) => {
     const { slug } = req.params;
     const category = await CategoryService.getBySlug(slug as string);
     
-    if (!category) return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
+    if (!category) return res.status(404).json({ success: false, message: t(req.locale, 'category.notFound') });
     
     res.json({ success: true, data: category });
   } catch (error: any) {
@@ -50,7 +51,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await CategoryService.delete(Number(id));
-    res.json({ success: true, message: 'Categoría eliminada correctamente' });
+    res.json({ success: true, message: t(req.locale, 'category.deleted') });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }

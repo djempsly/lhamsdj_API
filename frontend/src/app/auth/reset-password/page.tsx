@@ -72,10 +72,12 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { resetPassword } from "@/services/authService";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function ResetPasswordContent() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailFromUrl = searchParams.get("email") || "";
@@ -97,7 +99,7 @@ function ResetPasswordContent() {
     setLoading(false);
 
     if (res.success) {
-      alert("Contraseña restablecida. Ahora puedes iniciar sesión.");
+      alert(t("passwordReset"));
       router.push("/auth/login");
     } else {
       setError(res.message);
@@ -107,7 +109,7 @@ function ResetPasswordContent() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow border">
-        <h2 className="text-2xl font-bold text-center mb-6">Crear Nueva Contraseña</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">{t("createNewPassword")}</h2>
 
         {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>}
 
@@ -123,7 +125,7 @@ function ResetPasswordContent() {
              />
           )}
 
-          <label className="block text-sm font-medium text-gray-700">Código de Verificación</label>
+          <label className="block text-sm font-medium text-gray-700">{t("verificationCode")}</label>
           <input
             type="text"
             placeholder="Ej: 123456"
@@ -133,7 +135,7 @@ function ResetPasswordContent() {
             onChange={(e) => setFormData({...formData, code: e.target.value})}
           />
 
-          <label className="block text-sm font-medium text-gray-700">Nueva Contraseña</label>
+          <label className="block text-sm font-medium text-gray-700">{t("newPassword")}</label>
           <input
             type="password"
             placeholder="********"
@@ -148,7 +150,7 @@ function ResetPasswordContent() {
             disabled={loading}
             className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 disabled:opacity-50"
           >
-            {loading ? "Cambiando..." : "Cambiar Contraseña"}
+            {loading ? t("changing") : t("changePassword")}
           </button>
         </form>
       </div>
@@ -156,9 +158,18 @@ function ResetPasswordContent() {
   );
 }
 
+function ResetPasswordFallback() {
+  const t = useTranslations("auth");
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      {t("loading")}
+    </div>
+  );
+}
+
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center">Cargando...</div>}>
+    <Suspense fallback={<ResetPasswordFallback />}>
       <ResetPasswordContent />
     </Suspense>
   );

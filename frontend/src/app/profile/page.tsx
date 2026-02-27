@@ -370,6 +370,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { checkSession, logoutUser } from "@/services/authService";
 //import { updateMyProfile, deleteMyAccount } from "@/services/userService";
 import { uploadImages } from "@/services/uploadService"; // Reutilizamos tu servicio de subida
@@ -388,6 +389,7 @@ interface UserData {
 }
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -427,7 +429,7 @@ export default function ProfilePage() {
         if (updateRes.success) {
           // Actualizamos la vista localmente
           setUser((prev) => prev ? { ...prev, profileImage: newImageUrl } : null);
-          alert("Foto de perfil actualizada ✨");
+          alert(t("photoUpdated"));
         }
       } else {
         alert("Error al subir la imagen");
@@ -449,13 +451,13 @@ export default function ProfilePage() {
   // 4. Eliminar Cuenta
   const handleDeleteAccount = async () => {
     const confirmDelete = window.confirm(
-      "¿ESTÁS SEGURO? \n\nEsta acción desactivará tu cuenta. No podrás volver a iniciar sesión."
+      `${t("areYouSure")} \n\n${t("deleteWarning")}`
     );
 
     if (confirmDelete) {
       const res = await deleteMyAccount();
       if (res.success) {
-        alert("Tu cuenta ha sido eliminada. Lamentamos verte partir.");
+        alert(t("accountDeleted"));
         window.location.href = "/";
       } else {
         alert("Error: " + res.message);
@@ -468,7 +470,7 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">Mi Perfil</h1>
+      <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
@@ -503,7 +505,7 @@ export default function ProfilePage() {
 
             <div className="w-full mt-6 space-y-2">
               <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition">
-                <LogOut size={18} /> Cerrar Sesión
+                <LogOut size={18} /> {t("logout")}
               </button>
             </div>
           </div>
@@ -515,10 +517,10 @@ export default function ProfilePage() {
           {/* Panel de Admin (Solo si es Admin) */}
           {user.role === 'ADMIN' && (
             <div className="bg-black text-white p-6 rounded-xl shadow-lg">
-              <h3 className="text-lg font-bold mb-2">Panel de Administración</h3>
-              <p className="text-gray-300 text-sm mb-4">Gestiona productos, inventario y usuarios de la plataforma.</p>
+              <h3 className="text-lg font-bold mb-2">{t("adminPanel")}</h3>
+              <p className="text-gray-300 text-sm mb-4">{t("adminDesc")}</p>
               <Link href="/admin/dashboard" className="bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition inline-block">
-                Ir al Dashboard
+                {t("goToDashboard")}
               </Link>
             </div>
           )}
@@ -526,22 +528,22 @@ export default function ProfilePage() {
           {/* Opciones Generales */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b">
-              <h3 className="font-bold text-lg">Configuración de Cuenta</h3>
+              <h3 className="font-bold text-lg">{t("accountSettings")}</h3>
             </div>
             
             <div className="divide-y">
               <Link href="/profile/orders" className="block p-4 hover:bg-gray-50 transition flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Mis Pedidos</p>
-                  <p className="text-sm text-gray-500">Ver historial de compras y estado de envíos</p>
+                  <p className="font-medium">{t("myOrders")}</p>
+                  <p className="text-sm text-gray-500">{t("ordersDesc")}</p>
                 </div>
                 <span className="text-gray-400">&rarr;</span>
               </Link>
 
               <Link href="/profile/security" className="block p-4 hover:bg-gray-50 transition flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Seguridad</p>
-                  <p className="text-sm text-gray-500">Cambiar contraseña y ajustes de acceso</p>
+                  <p className="font-medium">{t("security")}</p>
+                  <p className="text-sm text-gray-500">{t("securityDesc")}</p>
                 </div>
                 <span className="text-gray-400">&rarr;</span>
               </Link>
@@ -551,15 +553,15 @@ export default function ProfilePage() {
           {/* Zona de Peligro */}
           <div className="bg-white rounded-xl shadow-sm border border-red-100 overflow-hidden">
             <div className="p-6">
-              <h3 className="font-bold text-red-600 mb-2">Zona de Peligro</h3>
+              <h3 className="font-bold text-red-600 mb-2">{t("dangerZone")}</h3>
               <p className="text-sm text-gray-500 mb-4">
-                Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, tenlo en cuenta.
+                {t("dangerDesc")}
               </p>
               <button 
                 onClick={handleDeleteAccount}
                 className="border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-50 transition flex items-center gap-2"
               >
-                <Trash2 size={16} /> Eliminar Cuenta
+                <Trash2 size={16} /> {t("deleteAccount")}
               </button>
             </div>
           </div>

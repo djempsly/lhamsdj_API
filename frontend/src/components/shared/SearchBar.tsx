@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,6 +18,7 @@ interface SearchResult {
 }
 
 export default function SearchBar() {
+  const t = useTranslations("search");
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -71,7 +73,7 @@ export default function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar productos, marcas, categorías..."
+          placeholder={t("placeholder")}
           className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent outline-none transition text-sm"
         />
         {query && (
@@ -104,14 +106,14 @@ export default function SearchBar() {
             onClick={() => setOpen(false)}
             className="block text-center py-2.5 text-sm text-blue-600 font-medium border-t hover:bg-gray-50"
           >
-            Ver todos los resultados
+            {t("viewAll")}
           </Link>
         </div>
       )}
 
       {open && query.length >= 2 && results.length === 0 && !loading && (
         <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4 text-center text-sm text-gray-500">
-          No se encontraron resultados para &quot;{query}&quot;
+          {t("noResults")} &quot;{query}&quot;
         </div>
       )}
     </div>

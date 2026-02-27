@@ -4,6 +4,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { changeUserPassword } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { ArrowLeft, Lock } from "lucide-react";
 import PasswordInput from "@/components/ui/PasswordInput";
 
 export default function SecurityPage() {
+  const t = useTranslations("profile");
   const router = useRouter();
   const [formData, setFormData] = useState({ currentPassword: "", newPassword: "", confirmNew: "" });
   const [error, setError] = useState("");
@@ -23,7 +25,7 @@ export default function SecurityPage() {
     setSuccess("");
 
     if (formData.newPassword !== formData.confirmNew) {
-      setError("Las nuevas contraseñas no coinciden");
+      setError(t("passwordsMismatch"));
       return;
     }
 
@@ -35,7 +37,7 @@ export default function SecurityPage() {
     setLoading(false);
 
     if (res.success) {
-      setSuccess("Contraseña actualizada con éxito.");
+      setSuccess(t("passwordUpdated"));
       setFormData({ currentPassword: "", newPassword: "", confirmNew: "" });
     } else {
       setError(res.message);
@@ -48,7 +50,7 @@ export default function SecurityPage() {
         <Link href="/profile" className="text-gray-500 hover:text-black">
           <ArrowLeft />
         </Link>
-        <h1 className="text-3xl font-bold">Seguridad</h1>
+        <h1 className="text-3xl font-bold">{t("security")}</h1>
       </div>
 
       <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100">
@@ -57,8 +59,8 @@ export default function SecurityPage() {
             <Lock size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-bold">Cambiar Contraseña</h2>
-            <p className="text-gray-500 text-sm">Asegura tu cuenta con una contraseña fuerte.</p>
+            <h2 className="text-xl font-bold">{t("changePassword")}</h2>
+            <p className="text-gray-500 text-sm">{t("changePasswordDesc")}</p>
           </div>
         </div>
 
@@ -67,7 +69,7 @@ export default function SecurityPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña Actual</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("currentPassword")}</label>
             {/* <input
               type="password"
               required
@@ -83,7 +85,7 @@ export default function SecurityPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nueva Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("newPassword")}</label>
             {/* <input
               type="password"
               required
@@ -97,11 +99,11 @@ export default function SecurityPage() {
               value={formData.newPassword}
               onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
             />
-            <p className="text-xs text-gray-400 mt-1">Mínimo 8 caracteres, mayúscula, número y símbolo.</p>
+            <p className="text-xs text-gray-400 mt-1">{t("passwordHint")}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Nueva Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("confirmNewPassword")}</label>
             {/* <input
               type="password"
               required
@@ -122,7 +124,7 @@ export default function SecurityPage() {
             disabled={loading}
             className="w-full bg-black text-white py-2 rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50"
           >
-            {loading ? "Actualizando..." : "Actualizar Contraseña"}
+            {loading ? t("updating") : t("updatePassword")}
           </button>
         </form>
       </div>

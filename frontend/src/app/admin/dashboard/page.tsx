@@ -24,6 +24,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getDashboardStats } from "@/services/adminService";
 import { Users, ShoppingBag, DollarSign, ShoppingCart, Store, TrendingUp, Package } from "lucide-react";
 
@@ -41,6 +42,8 @@ type Overview = {
 };
 
 export default function AdminDashboard() {
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [ordersByStatus, setOrdersByStatus] = useState<Record<string, number>>({});
   const [topProducts, setTopProducts] = useState<{ productId: number; name: string; unitsSold: number }[]>([]);
@@ -64,49 +67,49 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) return <div className="p-8">Cargando estadísticas...</div>;
-  if (!overview) return <div className="p-8">No se pudieron cargar las estadísticas.</div>;
+  if (loading) return <div className="p-8">{t("loadingStats")}</div>;
+  if (!overview) return <div className="p-8">{t("statsError")}</div>;
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Panel de Control</h1>
+      <h1 className="text-3xl font-bold mb-6">{t("dashboard")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Ingresos totales"
+          title={t("totalRevenue")}
           value={`$${overview.revenueTotal.toLocaleString()}`}
           icon={<DollarSign size={24} className="text-green-600" />}
           bg="bg-green-50"
         />
         <StatCard
-          title="Ingresos este mes"
+          title={t("monthRevenue")}
           value={`$${overview.revenueThisMonth.toLocaleString()}`}
-          sub={overview.revenueGrowth !== 0 ? `${overview.revenueGrowth > 0 ? "+" : ""}${overview.revenueGrowth}% vs mes anterior` : undefined}
+          sub={overview.revenueGrowth !== 0 ? `${overview.revenueGrowth > 0 ? "+" : ""}${overview.revenueGrowth}% ${t("growthVsLastMonth")}` : undefined}
           icon={<TrendingUp size={24} className="text-emerald-600" />}
           bg="bg-emerald-50"
         />
         <StatCard
-          title="Total órdenes"
+          title={t("totalOrders")}
           value={overview.totalOrders}
-          sub={`${overview.ordersThisMonth} este mes`}
+          sub={`${overview.ordersThisMonth} ${t("thisMonth")}`}
           icon={<ShoppingCart size={24} className="text-orange-600" />}
           bg="bg-orange-50"
         />
         <StatCard
-          title="Usuarios"
+          title={t("users")}
           value={overview.totalUsers}
           icon={<Users size={24} className="text-blue-600" />}
           bg="bg-blue-50"
         />
         <StatCard
-          title="Vendedores activos"
+          title={t("activeVendors")}
           value={overview.activeVendors}
-          sub={overview.pendingVendors ? `${overview.pendingVendors} pendientes` : undefined}
+          sub={overview.pendingVendors ? `${overview.pendingVendors} ${t("pendingVendors")}` : undefined}
           icon={<Store size={24} className="text-purple-600" />}
           bg="bg-purple-50"
         />
         <StatCard
-          title="Proveedores"
+          title={t("suppliers")}
           value={overview.activeSuppliers}
           icon={<Package size={24} className="text-indigo-600" />}
           bg="bg-indigo-50"
@@ -115,18 +118,18 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border p-6">
-          <h2 className="font-semibold text-lg mb-4">Órdenes por estado</h2>
+          <h2 className="font-semibold text-lg mb-4">{t("ordersByStatus")}</h2>
           <div className="flex flex-wrap gap-2">
             {Object.entries(ordersByStatus).map(([status, count]) => (
               <span key={status} className="px-3 py-1 bg-gray-100 rounded-full text-sm">
                 {status}: <strong>{count}</strong>
               </span>
             ))}
-            {Object.keys(ordersByStatus).length === 0 && <p className="text-gray-500 text-sm">Sin datos</p>}
+            {Object.keys(ordersByStatus).length === 0 && <p className="text-gray-500 text-sm">{t("noData")}</p>}
           </div>
         </div>
         <div className="bg-white rounded-xl border p-6">
-          <h2 className="font-semibold text-lg mb-4">Top productos (unidades vendidas)</h2>
+          <h2 className="font-semibold text-lg mb-4">{t("topProducts")}</h2>
           <ul className="space-y-2">
             {topProducts.slice(0, 5).map((p) => (
               <li key={p.productId} className="flex justify-between text-sm">
@@ -134,22 +137,22 @@ export default function AdminDashboard() {
                 <strong>{p.unitsSold}</strong>
               </li>
             ))}
-            {topProducts.length === 0 && <p className="text-gray-500 text-sm">Sin datos</p>}
+            {topProducts.length === 0 && <p className="text-gray-500 text-sm">{t("noData")}</p>}
           </ul>
         </div>
       </div>
 
       <div className="mt-6 bg-white rounded-xl border p-6">
-        <h2 className="font-semibold text-lg mb-4">Últimas órdenes</h2>
+        <h2 className="font-semibold text-lg mb-4">{t("recentOrders")}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 border-b">
-                <th className="pb-2">ID</th>
-                <th className="pb-2">Cliente</th>
-                <th className="pb-2">Total</th>
-                <th className="pb-2">Estado</th>
-                <th className="pb-2">Fecha</th>
+                <th className="pb-2">{tCommon("id")}</th>
+                <th className="pb-2">{t("customer")}</th>
+                <th className="pb-2">{tCommon("total")}</th>
+                <th className="pb-2">{tCommon("status")}</th>
+                <th className="pb-2">{tCommon("date")}</th>
               </tr>
             </thead>
             <tbody>
@@ -163,7 +166,7 @@ export default function AdminDashboard() {
                 </tr>
               ))}
               {recentOrders.length === 0 && (
-                <tr><td colSpan={5} className="py-4 text-gray-500">Sin órdenes recientes</td></tr>
+                <tr><td colSpan={5} className="py-4 text-gray-500">{t("noRecentOrders")}</td></tr>
               )}
             </tbody>
           </table>

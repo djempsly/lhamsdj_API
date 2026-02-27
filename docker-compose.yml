@@ -1,80 +1,18 @@
-
-
-# services:
-#   # ======= Base de Datos =======
-#   postgres:
-#     image: postgres:16-alpine
-#     container_name: lhamsdj_db
-#     restart: always
-#     environment:
-#       POSTGRES_USER: lhamsdj_user
-#       POSTGRES_PASSWORD: lhamsdj_secret_123
-#       POSTGRES_DB: lhamsdj_db
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U lhamsdj_user -d lhamsdj_db"]
-#       interval: 5s
-#       timeout: 5s
-#       retries: 5
-
-#   # ======= Backend (Express + Prisma) =======
-#   backend:
-#     build:
-#       context: ./backend
-#       dockerfile: Dockerfile
-#     container_name: lhamsdj_backend
-#     restart: always
-#     ports:
-#       - "3001:3001"
-#     environment:
-#       NODE_ENV: production
-#       PORT: 3001
-#       DATABASE_URL: postgresql://lhamsdj_user:lhamsdj_secret_123@postgres:5432/lhamsdj_db
-#       # Agrega aquí tus otras variables de entorno:
-#       # JWT_SECRET: tu_jwt_secret
-#       # STRIPE_SECRET_KEY: tu_stripe_key
-#     depends_on:
-#       postgres:
-#         condition: service_healthy
-
-#   # ======= Frontend (Next.js) =======
-#   frontend:
-#     build:
-#       context: ./frontend
-#       dockerfile: Dockerfile
-#     container_name: lhamsdj_frontend
-#     restart: always
-#     ports:
-#       - "3000:3000"
-#     environment:
-#       NEXT_PUBLIC_API_URL: http://backend:3001
-#     depends_on:
-#       - backend
-
-# volumes:
-#   postgres_data:
-
-
-
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: lhamsdj_db
     restart: always
     environment:
-      POSTGRES_USER: lhamsdj_user
-      POSTGRES_PASSWORD: lhamsdj_secret_123
-      POSTGRES_DB: lhamsdj_db
+      POSTGRES_USER: ${DB_USER:-lhamsdj_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-lhamsdj_secret_123}
+      POSTGRES_DB: ${DB_NAME:-lhamsdj_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lhamsdj_user -d lhamsdj_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lhamsdj_user} -d ${DB_NAME:-lhamsdj_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -86,17 +24,40 @@ services:
     container_name: lhamsdj_backend
     restart: always
     ports:
-      - "3001:3001"
+      - "4000:4000"
     environment:
       NODE_ENV: production
-      PORT: 3001
-      DATABASE_URL: postgresql://lhamsdj_user:lhamsdj_secret_123@postgres:5432/lhamsdj_db
+      PORT: 4000
+      DATABASE_URL: postgresql://${DB_USER:-lhamsdj_user}:${DB_PASSWORD:-lhamsdj_secret_123}@postgres:5432/${DB_NAME:-lhamsdj_db}
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME}
+      CLOUDFRONT_URL: ${CLOUDFRONT_URL}
+      ALLOWED_ORIGINS: http://localhost:3000,${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       postgres:
         condition: service_healthy
 
-  # frontend:
-  #   (lo agregas después cuando tengas el código)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:4000/api/v1}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
+    container_name: lhamsdj_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

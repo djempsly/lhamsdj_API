@@ -1,11 +1,13 @@
 "use client";
 
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 function SuccessContent() {
+  const t = useTranslations("payment");
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
@@ -17,14 +19,14 @@ function SuccessContent() {
           <CheckCircle size={60} />
         </div>
 
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">¡Pago Exitoso!</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">{t("success")}</h1>
         <p className="text-gray-500 mb-8 text-lg">
-          Gracias por tu compra. Tu pedido ha sido confirmado y pronto lo prepararemos.
+          {t("thankYou")}. {t("orderConfirmed")}.
         </p>
 
         {orderId && (
           <div className="bg-gray-100 p-4 rounded-lg mb-8">
-            <p className="text-sm text-gray-500 uppercase font-bold tracking-wider">Número de Orden</p>
+            <p className="text-sm text-gray-500 uppercase font-bold tracking-wider">{t("orderNumber")}</p>
             <p className="text-2xl font-mono font-bold text-black">#{orderId}</p>
           </div>
         )}
@@ -34,14 +36,14 @@ function SuccessContent() {
             href="/profile/orders" 
             className=" w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2"
           >
-            <ShoppingBag size={20} /> Ver mis Pedidos
+            <ShoppingBag size={20} /> {t("viewOrders")}
           </Link>
 
           <Link 
             href="/" 
             className=" w-full bg-white text-black border-2 border-gray-200 py-4 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"
           >
-            Seguir Comprando <ArrowRight size={20} />
+            {t("keepShopping")} <ArrowRight size={20} />
           </Link>
         </div>
 
@@ -50,9 +52,14 @@ function SuccessContent() {
   );
 }
 
+function LoadingFallback() {
+  const t = useTranslations("common");
+  return <div className="flex min-h-[80vh] items-center justify-center">{t("loading")}</div>;
+}
+
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center">Cargando...</div>}>
+    <Suspense fallback={<LoadingFallback />}>
       <SuccessContent />
     </Suspense>
   );

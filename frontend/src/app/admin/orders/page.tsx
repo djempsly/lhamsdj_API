@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getAllOrders, updateOrderStatus, downloadOrdersCsv } from "@/services/adminService";
 import { Truck, CheckCircle, Download } from "lucide-react";
 
 export default function AdminOrdersPage() {
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,27 +23,27 @@ export default function AdminOrdersPage() {
   }, []);
 
   const changeStatus = async (id: number, newStatus: string) => {
-    if (!confirm(`¿Cambiar estado a ${newStatus}?`)) return;
+    if (!confirm(t("changeStatusConfirm", { status: newStatus }))) return;
     const res = await updateOrderStatus(id, newStatus);
     if (res.success) loadOrders();
   };
 
-  if (loading) return <div className="p-8">Cargando órdenes...</div>;
+  if (loading) return <div className="p-8">{t("loadingOrders")}</div>;
 
   const handleExport = async () => {
     try {
       await downloadOrdersCsv();
     } catch (e) {
-      alert("Error al exportar. Inicia sesión como admin.");
+      alert(t("exportErrorMsg"));
     }
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Órdenes de Compra</h1>
+        <h1 className="text-3xl font-bold">{t("purchaseOrders")}</h1>
         <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
-          <Download size={18} /> Exportar CSV
+          <Download size={18} /> {t("exportCSV")}
         </button>
       </div>
 
@@ -48,12 +51,12 @@ export default function AdminOrdersPage() {
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-4 font-medium text-gray-500">ID</th>
-              <th className="p-4 font-medium text-gray-500">Cliente</th>
-              <th className="p-4 font-medium text-gray-500">Total</th>
-              <th className="p-4 font-medium text-gray-500">Pago</th>
-              <th className="p-4 font-medium text-gray-500">Estado Envío</th>
-              <th className="p-4 font-medium text-gray-500 text-right">Gestionar</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("id")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("customer")}</th>
+              <th className="p-4 font-medium text-gray-500">{tCommon("total")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("paymentStatus")}</th>
+              <th className="p-4 font-medium text-gray-500">{t("shippingStatus")}</th>
+              <th className="p-4 font-medium text-gray-500 text-right">{t("manage")}</th>
             </tr>
           </thead>
           <tbody>
@@ -87,7 +90,7 @@ export default function AdminOrdersPage() {
                       <button 
                         onClick={() => changeStatus(order.id, 'SHIPPED')}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                        title="Marcar como Enviado"
+                        title={t("markShipped")}
                       >
                         <Truck size={18} />
                       </button>
@@ -96,7 +99,7 @@ export default function AdminOrdersPage() {
                       <button 
                         onClick={() => changeStatus(order.id, 'DELIVERED')}
                         className="p-2 text-green-600 hover:bg-green-50 rounded"
-                        title="Marcar como Entregado"
+                        title={t("markDelivered")}
                       >
                         <CheckCircle size={18} />
                       </button>
@@ -106,7 +109,7 @@ export default function AdminOrdersPage() {
               </tr>
             ))}
             {orders.length === 0 && (
-              <tr><td colSpan={6} className="p-8 text-center text-gray-500">No hay órdenes registradas.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-gray-500">{t("noOrders")}</td></tr>
             )}
           </tbody>
         </table>

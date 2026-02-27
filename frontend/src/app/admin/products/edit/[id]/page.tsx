@@ -326,9 +326,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getProductById, updateProduct } from "@/services/productService";
 import { getCategories } from "@/services/categoryService";
-import { uploadImages } from "@/services/uploadService"; // 👈 AQUÍ ESTÁ EL CAMBIO (Plural)
+import { uploadImages } from "@/services/uploadService";
 import { ImagePlus, Loader2, Save, ArrowLeft, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -336,6 +337,9 @@ import Link from "next/link";
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const tProducts = useTranslations("products");
   const rawId = params?.id;
   const productId = Number(rawId);
 
@@ -383,7 +387,7 @@ export default function EditProductPage() {
             setUploadedUrls(productData.images.map((img: any) => img.url));
           }
         } else {
-          alert("Producto no encontrado");
+          alert(tProducts("notFound"));
           router.push("/admin/products");
         }
       } catch (error) {
@@ -409,10 +413,10 @@ export default function EditProductPage() {
         const newUrls = res.data.map((img: any) => img.url);
         setUploadedUrls((prev) => [...prev, ...newUrls]);
       } else {
-        alert("Error subiendo imágenes");
+        alert(tCommon("error"));
       }
     } catch (error) {
-      alert("Error de conexión");
+      alert(tCommon("error"));
     } finally {
       setUploading(false);
       e.target.value = ""; // Limpiar input
@@ -427,7 +431,7 @@ export default function EditProductPage() {
   // 3. Guardar Cambios
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (uploadedUrls.length === 0) return alert("El producto debe tener al menos una imagen");
+    if (uploadedUrls.length === 0) return alert(t("minOneImage"));
     
     setSaving(true);
 
@@ -448,7 +452,7 @@ export default function EditProductPage() {
       router.push("/admin/products");
       router.refresh();
     } else {
-      alert("❌ Error: " + res.message);
+      alert(tCommon("error") + ": " + res.message);
     }
   };
 
@@ -467,7 +471,7 @@ export default function EditProductPage() {
         
         {/* SECCIÓN IMÁGENES MÚLTIPLES */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Imágenes</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t("productImages")}</label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             
             {/* Galería */}
@@ -491,7 +495,7 @@ export default function EditProductPage() {
               ) : (
                 <>
                   <ImagePlus className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-xs text-gray-500 text-center px-2">Agregar Fotos</span>
+                  <span className="text-xs text-gray-500 text-center px-2">{t("addPhotos")}</span>
                 </>
               )}
               <input 
@@ -509,7 +513,7 @@ export default function EditProductPage() {
         {/* RESTO DEL FORMULARIO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("name")}</label>
             <input
               required
               className="w-full p-2 border rounded-md"
@@ -519,7 +523,7 @@ export default function EditProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("category")}</label>
             <select
               required
               className="w-full p-2 border rounded-md bg-white"
@@ -533,7 +537,7 @@ export default function EditProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("price")}</label>
             <input
               required
               type="number"
@@ -544,7 +548,7 @@ export default function EditProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("stock")}</label>
             <input
               required
               type="number"
@@ -556,7 +560,7 @@ export default function EditProductPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("description")}</label>
           <textarea
             className="w-full p-2 border rounded-md h-32"
             value={formData.description}
@@ -570,7 +574,7 @@ export default function EditProductPage() {
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition"
         >
           {saving ? <Loader2 className="animate-spin" /> : <Save />}
-          Guardar Cambios
+          {t("saveChanges")}
         </button>
 
       </form>

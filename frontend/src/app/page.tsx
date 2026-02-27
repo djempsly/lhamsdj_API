@@ -2,8 +2,9 @@ import { getProducts, getBestSellers } from "@/services/productService";
 import Image from "next/image";
 import Link from "next/link";
 import Carousel from "@/components/ui/Carousel";
+import { getTranslations } from "next-intl/server";
 
-function ProductCard({ product }: { product: any }) {
+function ProductCard({ product, viewMore }: { product: any; viewMore: string }) {
   return (
     <Link href={`/product/${product.slug}`} className="group">
       <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition bg-white">
@@ -22,7 +23,7 @@ function ProductCard({ product }: { product: any }) {
           </p>
           <div className="flex justify-between items-center">
             <span className="text-xl font-bold">${product.price}</span>
-            <span className="text-blue-600 text-sm font-medium">Ver más</span>
+            <span className="text-blue-600 text-sm font-medium">{viewMore}</span>
           </div>
         </div>
       </div>
@@ -31,6 +32,9 @@ function ProductCard({ product }: { product: any }) {
 }
 
 export default async function Home() {
+  const t = await getTranslations("home");
+  const tc = await getTranslations("common");
+
   const [productsResult, bestSellers] = await Promise.all([
     getProducts({ limit: 8, sort: "createdAt", order: "desc" }),
     getBestSellers(),
@@ -44,19 +48,19 @@ export default async function Home() {
 
       {bestSellers.length > 0 && (
         <>
-          <h2 className="text-2xl font-bold mb-6">Productos Destacados</h2>
+          <h2 className="text-2xl font-bold mb-6">{t("featured")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {bestSellers.map((product: any) => (
-              <ProductCard key={`best-${product.id}`} product={product} />
+              <ProductCard key={`best-${product.id}`} product={product} viewMore={tc("viewMore")} />
             ))}
           </div>
         </>
       )}
 
-      <h2 className="text-2xl font-bold mb-6 mt-12">Novedades</h2>
+      <h2 className="text-2xl font-bold mb-6 mt-12">{t("newArrivals")}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {productsResult.data.map((product: any) => (
-          <ProductCard key={`new-${product.id}`} product={product} />
+          <ProductCard key={`new-${product.id}`} product={product} viewMore={tc("viewMore")} />
         ))}
       </div>
 
@@ -66,7 +70,7 @@ export default async function Home() {
             href="/products"
             className="inline-block bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition"
           >
-            Ver todos los productos
+            {t("viewAll")}
           </Link>
         </div>
       )}

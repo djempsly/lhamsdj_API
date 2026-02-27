@@ -173,10 +173,12 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyUserEmail } from "@/services/authService";
 
 function VerifyContent() {
+  const t = useTranslations("auth");
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlToken = searchParams.get("token");
@@ -202,7 +204,7 @@ function VerifyContent() {
       setTimeout(() => router.push("/auth/login"), 2000);
     } else {
       setStatus("error");
-      setMessage(res.message || "Código inválido");
+      setMessage(res.message || t("invalidCode"));
     }
   };
 
@@ -214,20 +216,20 @@ function VerifyContent() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border text-center">
-        <h2 className="text-2xl font-bold mb-4">Verificar Cuenta</h2>
+        <h2 className="text-2xl font-bold mb-4">{t("verifyAccount")}</h2>
 
-        {status === "loading" && <p className="text-blue-500">Verificando...</p>}
+        {status === "loading" && <p className="text-blue-500">{t("verifying")}</p>}
 
         {status === "success" && (
           <div className="text-green-600 font-bold text-xl py-4">
-            ✅ ¡Cuenta Verificada! <br/> <span className="text-sm text-gray-500">Redirigiendo...</span>
+            ✅ {t("accountVerified")} <br/> <span className="text-sm text-gray-500">{t("redirecting")}</span>
           </div>
         )}
 
         {/* Muestra el formulario si está en espera (idle) o si hubo error */}
         {(status === "idle" || status === "error") && (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <p className="text-gray-500 text-sm">Introduce el código de 6 dígitos:</p>
+            <p className="text-gray-500 text-sm">{t("enterDigitCode")}</p>
             
             <input 
               type="text" 
@@ -244,7 +246,7 @@ function VerifyContent() {
               disabled={code.length < 6}
               className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 transition"
             >
-              Verificar Manualmente
+              {t("verifyManually")}
             </button>
           </form>
         )}
@@ -253,9 +255,18 @@ function VerifyContent() {
   );
 }
 
+function VerifyFallback() {
+  const t = useTranslations("auth");
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      {t("verifying")}
+    </div>
+  );
+}
+
 export default function VerifyPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center">Verificando...</div>}>
+    <Suspense fallback={<VerifyFallback />}>
       <VerifyContent />
     </Suspense>
   );

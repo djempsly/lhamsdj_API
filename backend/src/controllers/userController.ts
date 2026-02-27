@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { UserService } from '../services/userService';
 import { updateProfileSchema, toggleUserStatusSchema } from '../validation/userSchema';
 import { audit, AuditActions } from '../lib/audit';
@@ -7,7 +8,7 @@ import { parsePagination } from '../utils/pagination';
 export const getMyProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+    if (!userId) return res.status(401).json({ success: false, message: t(req.locale, 'user.notAuthenticated') });
 
     const user = await UserService.getProfile(userId);
     res.json({ success: true, data: user });
@@ -19,12 +20,12 @@ export const getMyProfile = async (req: Request, res: Response) => {
 export const updateMyProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+    if (!userId) return res.status(401).json({ success: false, message: t(req.locale, 'user.notAuthenticated') });
 
     const validatedData = updateProfileSchema.parse(req.body);
     const user = await UserService.updateProfile(userId, validatedData);
     await audit({ userId, action: AuditActions.PROFILE_UPDATED, entity: 'User', entityId: userId, ip: req.ip });
-    res.json({ success: true, message: 'Perfil actualizado', data: user });
+    res.json({ success: true, message: t(req.locale, 'user.profileUpdated'), data: user });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -33,10 +34,10 @@ export const updateMyProfile = async (req: Request, res: Response) => {
 export const deleteMyAccount = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+    if (!userId) return res.status(401).json({ success: false, message: t(req.locale, 'user.notAuthenticated') });
 
     await UserService.deactivateAccount(userId);
-    res.json({ success: true, message: 'Cuenta desactivada' });
+    res.json({ success: true, message: t(req.locale, 'user.accountDeactivated') });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -55,10 +56,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const toggleUserStatus = async (req: Request, res: Response) => {
   try {
     const targetId = Number(req.params.id);
-    if (isNaN(targetId)) return res.status(400).json({ success: false, message: 'ID inválido' });
+    if (isNaN(targetId)) return res.status(400).json({ success: false, message: t(req.locale, 'user.invalidId') });
 
     if (req.user?.id === targetId) {
-      return res.status(400).json({ success: false, message: 'No puedes desactivarte a ti mismo' });
+      return res.status(400).json({ success: false, message: t(req.locale, 'user.cannotDeactivateSelf') });
     }
 
     const { isActive } = toggleUserStatusSchema.parse(req.body);

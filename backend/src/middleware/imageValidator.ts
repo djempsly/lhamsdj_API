@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+import { t } from '../i18n/t';
 
 /**
- * Valida los magic bytes de los archivos subidos.
- * MIME type se puede falsificar; los primeros bytes del archivo no mienten.
+ * Validates magic bytes of uploaded files.
+ * MIME type can be spoofed; magic bytes cannot.
  */
 
 interface MagicSignature {
@@ -65,7 +66,7 @@ export const validateImageBytes = (req: Request, res: Response, next: NextFuncti
       if (!result.valid) {
         return res.status(400).json({
           success: false,
-          message: `Archivo "${file.originalname}" no es una imagen válida. Los bytes no corresponden a JPEG, PNG, WebP o GIF.`,
+          message: t(req.locale, 'middleware.invalidMagicBytes', { name: file.originalname }),
         });
       }
 
@@ -73,7 +74,11 @@ export const validateImageBytes = (req: Request, res: Response, next: NextFuncti
       if (result.detectedMime && declaredMime !== result.detectedMime) {
         return res.status(400).json({
           success: false,
-          message: `Archivo "${file.originalname}": extensión declarada (${declaredMime}) no coincide con el contenido real (${result.detectedMime}).`,
+          message: t(req.locale, 'middleware.mismatchMime', {
+            name: file.originalname,
+            declared: declaredMime,
+            detected: result.detectedMime,
+          }),
         });
       }
     }
@@ -94,14 +99,17 @@ export const validateImageExtension = (req: Request, res: Response, next: NextFu
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       return res.status(400).json({
         success: false,
-        message: `Extensión "${ext}" no permitida. Solo: ${ALLOWED_EXTENSIONS.join(', ')}`,
+        message: t(req.locale, 'middleware.invalidExtension', {
+          ext,
+          allowed: ALLOWED_EXTENSIONS.join(', '),
+        }),
       });
     }
 
     if (file.originalname.includes('..') || file.originalname.includes('/') || file.originalname.includes('\\')) {
       return res.status(400).json({
         success: false,
-        message: 'Nombre de archivo no válido.',
+        message: t(req.locale, 'middleware.invalidFilename'),
       });
     }
   }

@@ -202,14 +202,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getCategories } from "@/services/categoryService";
-import { uploadImages } from "@/services/uploadService"; // <--- Usamos la nueva función plural
+import { uploadImages } from "@/services/uploadService";
 import { createProduct } from "@/services/productService";
 import { ImagePlus, Loader2, Save, X } from "lucide-react";
 import Image from "next/image";
 
 export default function CreateProductPage() {
   const router = useRouter();
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   
   // Estados
   const [categories, setCategories] = useState<any[]>([]);
@@ -253,10 +256,10 @@ export default function CreateProductPage() {
         // Agregamos las nuevas fotos a las que ya teníamos (sin borrar las anteriores)
         setUploadedUrls((prev) => [...prev, ...newUrls]);
       } else {
-        alert("Error subiendo imágenes: " + res.message);
+        alert(tCommon("error") + ": " + res.message);
       }
     } catch (error) {
-      alert("Error de conexión");
+      alert(tCommon("error"));
     } finally {
       setUploading(false);
       // Limpiamos el input para poder subir las mismas fotos de nuevo si se borraron
@@ -271,7 +274,7 @@ export default function CreateProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (uploadedUrls.length === 0) return alert("Debes subir al menos una imagen");
+    if (uploadedUrls.length === 0) return alert(t("uploadImage"));
 
     setLoading(true);
 
@@ -288,11 +291,11 @@ export default function CreateProductPage() {
     setLoading(false);
 
     if (res.success) {
-      alert("✅ Producto creado exitosamente");
+      alert(t("productCreated"));
       router.push("/admin/products"); 
       router.refresh();
     } else {
-      alert("❌ Error: " + res.message);
+      alert(tCommon("error") + ": " + res.message);
     }
   };
 
@@ -304,7 +307,7 @@ export default function CreateProductPage() {
         
         {/* SECCIÓN IMÁGENES MÚLTIPLES */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Imágenes del Producto</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t("productImages")}</label>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             {/* Galería de fotos subidas */}
@@ -328,7 +331,7 @@ export default function CreateProductPage() {
               ) : (
                 <>
                   <ImagePlus className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-xs text-gray-500 text-center px-2">Agregar Fotos</span>
+                  <span className="text-xs text-gray-500 text-center px-2">{t("addPhotos")}</span>
                 </>
               )}
               <input 
@@ -341,13 +344,13 @@ export default function CreateProductPage() {
               />
             </label>
           </div>
-          <p className="text-xs text-gray-400">Puedes seleccionar varias fotos a la vez.</p>
+          <p className="text-xs text-gray-400">{t("multiplePhotos")}</p>
         </div>
 
         {/* RESTO DEL FORMULARIO (Igual que antes) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("name")}</label>
             <input
               required
               className="w-full p-2 border rounded-md"
@@ -357,14 +360,14 @@ export default function CreateProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("category")}</label>
             <select
               required
               className="w-full p-2 border rounded-md bg-white"
               value={formData.categoryId}
               onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
             >
-              <option value="">Selecciona...</option>
+              <option value="">{t("selectCategory")}</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
@@ -372,7 +375,7 @@ export default function CreateProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("price")}</label>
             <input
               required
               type="number"
@@ -385,7 +388,7 @@ export default function CreateProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stock Inicial</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("initialStock")}</label>
             <input
               required
               type="number"
@@ -398,7 +401,7 @@ export default function CreateProductPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{tCommon("description")}</label>
           <textarea
             className="w-full p-2 border rounded-md h-32"
             value={formData.description}
@@ -412,7 +415,7 @@ export default function CreateProductPage() {
           className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
-          Guardar Producto
+          {t("saveProduct")}
         </button>
 
       </form>

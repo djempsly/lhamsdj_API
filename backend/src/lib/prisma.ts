@@ -8,7 +8,7 @@ declare global {
 
 // 2. Exportamos la instancia: si ya existe en global la usamos, si no, creamos una nueva
  export const prisma = global.prisma || new PrismaClient({
-  log: ['query'], // Logs en consola para ver las consultas SQL
+  log: process.env.PRISMA_LOG === 'query' ? ['query'] : ['warn', 'error'],
 });
 
 // 3. Si no estamos en producción, guardamos la instancia en global

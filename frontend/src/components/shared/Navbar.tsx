@@ -3,14 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ShoppingCart, Heart, User, LogOut, LayoutDashboard, Store } from "lucide-react";
 import SearchBar from "./SearchBar";
+import LanguageSwitcher from "./LanguageSwitcher";
 import NotificationBell from "./NotificationBell";
 import { checkSession, logoutUser } from "@/services/authService";
 import { getCart } from "@/services/cartService";
 
 export default function Navbar() {
   const router = useRouter();
+  const t = useTranslations("navbar");
   const [user, setUser] = useState<{ id: number; name: string; email: string; role: string } | null>(null);
   const [cartCount, setCartCount] = useState(0);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -51,13 +54,13 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link href="/products" className="p-2 text-gray-600 hover:text-gray-900" title="Productos">
-              Productos
+            <Link href="/products" className="p-2 text-gray-600 hover:text-gray-900" title={t("products")}>
+              {t("products")}
             </Link>
-            <Link href="/wishlist" className="p-2 text-gray-600 hover:text-gray-900 relative" title="Lista de deseos">
+            <Link href="/wishlist" className="p-2 text-gray-600 hover:text-gray-900 relative" title={t("wishlist")}>
               <Heart size={20} />
             </Link>
-            <Link href="/cart" className="p-2 text-gray-600 hover:text-gray-900 relative" title="Carrito">
+            <Link href="/cart" className="p-2 text-gray-600 hover:text-gray-900 relative" title={t("cart")}>
               <ShoppingCart size={20} />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
@@ -65,6 +68,7 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            <LanguageSwitcher />
             <NotificationBell />
 
             {user ? (
@@ -82,20 +86,20 @@ export default function Navbar() {
                     <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
                     <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg border shadow-lg py-1 z-20">
                       <Link href="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">
-                        <User size={16} /> Perfil
+                        <User size={16} /> {t("profile")}
                       </Link>
                       {user.role === "ADMIN" && (
                         <Link href="/admin/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">
-                          <LayoutDashboard size={16} /> Admin
+                          <LayoutDashboard size={16} /> {t("admin")}
                         </Link>
                       )}
                       {(user.role === "VENDOR" || user.role === "ADMIN") && (
                         <Link href="/vendor/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">
-                          <Store size={16} /> Mi tienda
+                          <Store size={16} /> {t("myStore")}
                         </Link>
                       )}
                       <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
-                        <LogOut size={16} /> Cerrar sesión
+                        <LogOut size={16} /> {t("logout")}
                       </button>
                     </div>
                   </>
@@ -103,11 +107,11 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link href="/auth/login" className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900">
-                  Entrar
+                <Link href="/auth/login" prefetch={false} className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900">
+                  {t("login")}
                 </Link>
-                <Link href="/auth/register" className="px-3 py-1.5 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-                  Registrarse
+                <Link href="/auth/register" prefetch={false} className="px-3 py-1.5 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+                  {t("register")}
                 </Link>
               </div>
             )}

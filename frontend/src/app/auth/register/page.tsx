@@ -74,7 +74,7 @@
 //             Hemos enviado un enlace de confirmación a <strong>{formData.email}</strong>.
 //             <br />Por favor revísalo para activar tu cuenta.
 //           </p>
-//           <Link href="/auth/login" className="text-green-800 font-bold hover:underline bg-green-200 px-4 py-2 rounded-lg transition hover:bg-green-300">
+//           <Link href="/auth/login" prefetch={false} className="text-green-800 font-bold hover:underline bg-green-200 px-4 py-2 rounded-lg transition hover:bg-green-300">
 //             Ir al Login
 //           </Link>
 //         </div>
@@ -168,7 +168,7 @@
 
 //         <p className="mt-6 text-center text-sm text-gray-600">
 //           ¿Ya tienes cuenta?{" "}
-//           <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline">
+//           <Link href="/auth/login" prefetch={false} className="text-blue-600 font-semibold hover:underline">
 //             Inicia Sesión
 //           </Link>
 //         </p>
@@ -265,7 +265,7 @@
 //             Hemos enviado un enlace a <strong>{formData.email}</strong>.
 //             <br />Revísalo para activar tu cuenta.
 //           </p>
-//           <Link href="/auth/login" className="text-green-800 font-bold hover:underline">Ir al Login</Link>
+//           <Link href="/auth/login" prefetch={false} className="text-green-800 font-bold hover:underline">Ir al Login</Link>
 //         </div>
 //       </div>
 //     );
@@ -355,7 +355,7 @@
 //         </form>
         
 //         <p className="mt-4 text-center text-sm">
-//           ¿Ya tienes cuenta? <Link href="/auth/login" className="text-blue-600 font-bold">Inicia Sesión</Link>
+//           ¿Ya tienes cuenta? <Link href="/auth/login" prefetch={false} className="text-blue-600 font-bold">Inicia Sesión</Link>
 //         </p>
 //       </div>
 //     </div>
@@ -464,7 +464,7 @@ export default function RegisterPage() {
             Hemos enviado un enlace a <strong>{formData.email}</strong>.
             <br />Revísalo para activar tu cuenta.
           </p>
-          <Link href="/auth/login" className="text-green-800 font-bold hover:underline">Ir al Login</Link>
+          <Link href="/auth/login" prefetch={false} className="text-green-800 font-bold hover:underline">Ir al Login</Link>
         </div>
       </div>
     );
@@ -536,7 +536,7 @@ export default function RegisterPage() {
         </form>
         
         <p className="mt-4 text-center text-sm">
-          ¿Ya tienes cuenta? <Link href="/auth/login" className="text-blue-600 font-bold">Inicia Sesión</Link>
+          ¿Ya tienes cuenta? <Link href="/auth/login" prefetch={false} className="text-blue-600 font-bold">Inicia Sesión</Link>
         </p>
       </div>
     </div>

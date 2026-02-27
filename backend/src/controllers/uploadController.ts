@@ -25,11 +25,12 @@
 // };
 
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 
 export const uploadImage = (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No se envió ningún archivo' });
+      return res.status(400).json({ success: false, message: t(req.locale, 'upload.noFile') });
     }
 
     const fileData = req.file as any; 
@@ -46,7 +47,7 @@ export const uploadImage = (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      message: 'Imagen subida correctamente',
+      message: t(req.locale, 'upload.success'),
       data: {
         url: finalUrl,      // <--- Ahora devuelve la URL rápida y segura
         key: fileData.key   

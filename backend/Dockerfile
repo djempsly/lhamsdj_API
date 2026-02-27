@@ -1,4 +1,3 @@
-# --- Etapa 1: Build ---
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -8,10 +7,9 @@ RUN npm ci
 
 COPY . .
 
-# Build de Next.js
+RUN npx prisma generate
 RUN npm run build
 
-# --- Etapa 2: Producción ---
 FROM node:20-alpine
 
 WORKDIR /app
@@ -19,11 +17,12 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-# Copiar el build de Next.js
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config* ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/i18n ./dist/i18n
 
-EXPOSE 3000
+EXPOSE 4000
 
-CMD ["npm", "start"]
+CMD ["node", "dist/server.js"]

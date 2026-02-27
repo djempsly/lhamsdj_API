@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { ShippingService } from '../services/shippingService';
 import { z } from 'zod';
 
@@ -30,7 +31,7 @@ export const trackShipment = async (req: Request, res: Response) => {
     const { trackingNumber } = req.params;
     const { default: shippingManager } = await import('../shipping/shippingManager');
     const info = await shippingManager.getTracking(String(trackingNumber));
-    if (!info) return res.status(404).json({ success: false, message: 'No se encontró información de tracking' });
+    if (!info) return res.status(404).json({ success: false, message: t(req.locale, 'shipping.trackingNotFound') });
     res.json({ success: true, data: info });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

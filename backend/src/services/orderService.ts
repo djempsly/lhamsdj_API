@@ -1,3 +1,4 @@
+import { OrderStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { PaginationResult, buildPaginatedResponse } from '../utils/pagination';
 import { ShipmentService } from './shipmentService';
@@ -5,6 +6,8 @@ import { CouponService } from './couponService';
 import { NotificationService } from './notificationService';
 import { sendEmail } from '../utils/mailer';
 import { orderConfirmationEmail } from '../utils/emailTemplates';
+
+type OrderStatusType = OrderStatus;
 
 interface CreateOrderData {
   addressId: number;
@@ -159,14 +162,12 @@ export const OrderService = {
     return buildPaginatedResponse(data, total, pagination);
   },
 
-  async updateOrderStatusAdmin(orderId: number, status: string) {
-    const valid = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
-    if (!valid.includes(status)) throw new Error('Estado de orden no válido');
+  async updateOrderStatusAdmin(orderId: number, status: OrderStatusType) {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!order) throw new Error('Orden no encontrada');
-    return await prisma.order.update({
+    if (!order) throw new Error('Order not found');
+    return prisma.order.update({
       where: { id: orderId },
-      data: { status: status as any },
+      data: { status },
       include: { user: { select: { name: true, email: true } }, orderItems: true },
     });
   },

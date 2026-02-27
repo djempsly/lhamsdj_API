@@ -15,13 +15,13 @@ import { apiPublicLimiter } from './middleware/rateLimiters';
 import { requestId } from './middleware/requestId';
 import { geolocate } from './middleware/geolocate';
 import logger from './lib/logger';
+import { localeMiddleware } from './middleware/localeMiddleware';
 
 const app: Application = express();
 
-// 0. Request ID (antes de todo para trazabilidad)
 app.use(requestId);
 
-// 1. Security headers (Helmet + custom)
+// Security headers (Helmet + custom)
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
@@ -31,58 +31,58 @@ app.use(helmet({
 app.use(securityHeaders);
 app.use(nocache());
 
-// 2. Cookie parser (antes de todo lo que necesite leer cookies)
 app.use(cookieParser());
+app.use(localeMiddleware);
 
-// 3. CORS
+// CORS
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: origen '${origin}' no permitido.`));
+    callback(new Error(`CORS: origin '${origin}' not allowed.`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// 4. Rate limiting global (endpoints específicos tienen sus propios limits)
+// Rate limiting (specific endpoints have their own limits)
 app.use(apiPublicLimiter);
 
-// 5. Stripe webhook ANTES del JSON parser (necesita raw body)
+// Stripe webhook (before JSON parser, needs raw body)
 app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), paymentRoutes);
 
-// 6. JSON parser + sanitización
+// JSON parser + sanitization
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 app.use(sanitizeInput);
 
-// 7. Geolocation (detect country/currency from IP)
+// Geolocation (detect country/currency from IP)
 app.use(geolocate);
 
-// 8. Request logging
+// Request logging
 app.use((req, res, next) => {
   logger.info({ method: req.method, url: req.url, ip: req.ip, requestId: req.requestId, country: req.geo?.country }, 'request');
   next();
 });
 
-// 8. Swagger docs (solo en desarrollo)
+// Swagger docs (development only)
 if (process.env.NODE_ENV !== 'production') {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
 
-// 9. Rutas API
+// API routes
 app.use('/api/v1', routes);
 app.use('/api/v1/payments', paymentRoutes);
 
-// 10. Health check
+// Health check
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', service: 'LhamsDJ API' });
 });
 
-// 11. Error handler global (siempre al final)
+// Global error handler (always last)
 app.use(errorHandler);
 
 export default app;

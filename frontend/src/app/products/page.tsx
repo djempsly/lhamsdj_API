@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getProducts } from "@/services/productService";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,6 +10,8 @@ import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product, Pagination } from "@/types";
 
 function ProductsContent() {
+  const t = useTranslations("products");
+  const tc = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
@@ -44,8 +47,8 @@ function ProductsContent() {
     <main className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{search ? `Resultados para "${search}"` : "Todos los productos"}</h1>
-          {pagination && <p className="text-sm text-gray-500 mt-1">{pagination.total} productos encontrados</p>}
+          <h1 className="text-2xl font-bold">{search ? `${t("resultsFor")} "${search}"` : t("allProducts")}</h1>
+          {pagination && <p className="text-sm text-gray-500 mt-1">{pagination.total} {t("found")}</p>}
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -53,10 +56,10 @@ function ProductsContent() {
             onChange={(e) => { const [s, o] = e.target.value.split("-"); updateParams({ sort: s, order: o }); }}
             className="text-sm border rounded-lg px-3 py-2 bg-white"
           >
-            <option value="createdAt-desc">Más recientes</option>
-            <option value="price-asc">Precio: menor a mayor</option>
-            <option value="price-desc">Precio: mayor a menor</option>
-            <option value="name-asc">Nombre A-Z</option>
+            <option value="createdAt-desc">{t("newest")}</option>
+            <option value="price-asc">{t("priceLowHigh")}</option>
+            <option value="price-desc">{t("priceHighLow")}</option>
+            <option value="name-asc">{t("nameAZ")}</option>
           </select>
           <button onClick={() => setShowFilters(!showFilters)} className="md:hidden p-2 border rounded-lg">
             <SlidersHorizontal size={18} />
@@ -72,8 +75,8 @@ function ProductsContent() {
         </div>
       ) : products.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-xl text-gray-400">No se encontraron productos</p>
-          <Link href="/products" className="text-blue-600 text-sm mt-2 inline-block">Ver todos</Link>
+          <p className="text-xl text-gray-400">{t("noProducts")}</p>
+          <Link href="/products" className="text-blue-600 text-sm mt-2 inline-block">{t("viewAll")}</Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -113,7 +116,7 @@ function ProductsContent() {
             <ChevronLeft size={18} />
           </button>
           <span className="text-sm text-gray-600 px-4">
-            Página {pagination.page} de {pagination.totalPages}
+            {tc("page", { current: pagination.page, total: pagination.totalPages })}
           </span>
           <button
             disabled={!pagination.hasNext}
@@ -128,9 +131,14 @@ function ProductsContent() {
   );
 }
 
+function ProductsPageFallback() {
+  const t = useTranslations("products");
+  return <div className="container mx-auto px-4 py-8 text-center">{t("loadingProducts")}</div>;
+}
+
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center">Cargando productos...</div>}>
+    <Suspense fallback={<ProductsPageFallback />}>
       <ProductsContent />
     </Suspense>
   );

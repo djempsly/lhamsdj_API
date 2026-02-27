@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,6 +15,7 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  const t = useTranslations("notifications");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -85,14 +87,14 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b">
-            <h3 className="font-semibold text-sm">Notificaciones</h3>
+            <h3 className="font-semibold text-sm">{t("title")}</h3>
             {unread > 0 && (
-              <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline">Marcar todo leído</button>
+              <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline">{t("markAllRead")}</button>
             )}
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-center py-8 text-sm text-gray-400">Sin notificaciones</p>
+              <p className="text-center py-8 text-sm text-gray-400">{t("empty")}</p>
             ) : (
               notifications.slice(0, 10).map((n) => (
                 <div key={n.id} className={`px-4 py-3 border-b last:border-0 ${!n.isRead ? "bg-blue-50" : ""}`}>

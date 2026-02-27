@@ -47,6 +47,7 @@
     "rootDir": "./src",        // <--- Importante: Tu código estará en src
     "outDir": "./dist",        // <--- Importante: Compilará a dist
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
 

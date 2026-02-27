@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getVendorProfile, getVendorProducts } from "@/services/vendorService";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +11,8 @@ import type { Product, Pagination } from "@/types";
 
 export default function VendorStorePage() {
   const { slug } = useParams();
+  const t = useTranslations("vendor");
+  const tCommon = useTranslations("common");
   const [vendor, setVendor] = useState<any>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -37,7 +40,7 @@ export default function VendorStorePage() {
   }
 
   if (loading) return <div className="container mx-auto px-4 py-10"><div className="h-48 bg-gray-100 rounded-xl animate-pulse" /></div>;
-  if (!vendor) return <div className="container mx-auto px-4 py-20 text-center text-gray-400 text-lg">Vendedor no encontrado</div>;
+  if (!vendor) return <div className="container mx-auto px-4 py-20 text-center text-gray-400 text-lg">{t("notFound")}</div>;
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -54,17 +57,17 @@ export default function VendorStorePage() {
             <h1 className="text-2xl font-bold">{vendor.businessName}</h1>
             <div className="flex items-center gap-3 mt-1 text-sm text-white/70">
               <span className="flex items-center gap-1"><MapPin size={14} />{vendor.country}{vendor.city ? `, ${vendor.city}` : ""}</span>
-              <span className="flex items-center gap-1"><Package size={14} />{vendor._count?.products || 0} productos</span>
+              <span className="flex items-center gap-1"><Package size={14} />{vendor._count?.products || 0} {t("products")}</span>
             </div>
           </div>
         </div>
         {vendor.description && <p className="mt-4 text-sm text-white/80 max-w-2xl">{vendor.description}</p>}
       </div>
 
-      <h2 className="text-xl font-bold mb-4">Productos de {vendor.businessName}</h2>
+      <h2 className="text-xl font-bold mb-4">{t("productsOf")} {vendor.businessName}</h2>
 
       {products.length === 0 ? (
-        <p className="text-center py-10 text-gray-400">Este vendedor aún no tiene productos</p>
+        <p className="text-center py-10 text-gray-400">{t("noProducts")}</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {products.map((product: any) => (
@@ -88,7 +91,7 @@ export default function VendorStorePage() {
           <button disabled={!pagination.hasPrev} onClick={() => loadProducts(vendor.id, page - 1)} className="p-2 border rounded-lg disabled:opacity-30">
             <ChevronLeft size={18} />
           </button>
-          <span className="text-sm text-gray-600 px-4">Página {page} de {pagination.totalPages}</span>
+          <span className="text-sm text-gray-600 px-4">{tCommon("page", { current: page, total: pagination.totalPages })}</span>
           <button disabled={!pagination.hasNext} onClick={() => loadProducts(vendor.id, page + 1)} className="p-2 border rounded-lg disabled:opacity-30">
             <ChevronRight size={18} />
           </button>

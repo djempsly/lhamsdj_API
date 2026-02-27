@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/tokens';
+import { t } from '../i18n/t';
 
 declare global {
   namespace Express {
@@ -11,10 +12,9 @@ declare global {
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 1. Leer token de cookie HttpOnly (prioridad)
     let token = req.cookies?.access_token;
 
-    // 2. Fallback: header Authorization (para apps móviles / Postman)
+    // Fallback: Authorization header (for mobile apps / Postman)
     if (!token) {
       const authHeader = req.headers.authorization;
       if (authHeader?.startsWith('Bearer ')) {
@@ -23,28 +23,28 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     }
 
     if (!token) {
-      return res.status(401).json({ success: false, message: 'Acceso no autorizado. Token faltante.' });
+      return res.status(401).json({ success: false, message: t(req.locale, 'middleware.tokenMissing') });
     }
 
     req.user = verifyAccessToken(token);
     next();
   } catch {
-    return res.status(401).json({ success: false, message: 'Token inválido o expirado.' });
+    return res.status(401).json({ success: false, message: t(req.locale, 'middleware.tokenInvalid') });
   }
 };
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) return res.status(401).json({ success: false, message: 'No autenticado.' });
+  if (!req.user) return res.status(401).json({ success: false, message: t(req.locale, 'auth.notAuthenticated') });
   if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({ success: false, message: 'Requiere privilegios de Administrador.' });
+    return res.status(403).json({ success: false, message: t(req.locale, 'middleware.requireAdmin') });
   }
   next();
 };
 
 export const requireSupport = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) return res.status(401).json({ success: false, message: 'No autenticado.' });
+  if (!req.user) return res.status(401).json({ success: false, message: t(req.locale, 'auth.notAuthenticated') });
   if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPPORT') {
-    return res.status(403).json({ success: false, message: 'Requiere privilegios de Soporte o Admin.' });
+    return res.status(403).json({ success: false, message: t(req.locale, 'middleware.requireSupport') });
   }
   next();
 };

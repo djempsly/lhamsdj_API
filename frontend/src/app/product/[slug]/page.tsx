@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getProductBySlug } from "@/services/productService";
 import { addToCart } from "@/services/cartService";
 import Image from "next/image";
@@ -9,6 +10,8 @@ import { ShoppingCart, Check, AlertCircle } from "lucide-react";
 
 
 export default function ProductDetailPage() {
+  const t = useTranslations("products");
+  const tc = useTranslations("common");
   const { slug } = useParams();
    const router = useRouter()
   
@@ -38,7 +41,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     // 1. Validar si requiere variante (si el producto tiene variantes y no elegí ninguna)
     if (product.variants.length > 0 && !selectedVariant) {
-      alert("Por favor selecciona una opción (Talla/Color)");
+      alert(t("selectOption"));
       return;
     }
 
@@ -55,14 +58,14 @@ export default function ProductDetailPage() {
 
     if (res.success) {
     window.dispatchEvent(new Event("cart-change"));
-      alert("✅ Producto agregado al carrito");
+      alert("✅ " + t("addedToCart"));
       // Aquí podríamos abrir un "Mini Cart" lateral en el futuro
     } else {
          // 👇 SOLUCIÓN AQUÍ: Detectar error de autenticación
       // Si el mensaje dice "token", "autorizado", "permiso", etc.
       if (res.message?.toLowerCase().includes("token") || res.message?.toLowerCase().includes("autenticado")) {
         // Redirigimos al login
-        alert("Debes iniciar sesión para comprar")
+        alert(t("loginToBuy"))
         window.location.href = "/auth/login";
         return;
       }
@@ -75,7 +78,7 @@ export default function ProductDetailPage() {
    
     // 1. Validaciones iguales al AddToCart
     if (product.variants.length > 0 && !selectedVariant) {
-      return alert("Selecciona una opción");
+      return alert(t("selectAnOption"));
     }
 
     setIsAdding(true);
@@ -98,8 +101,8 @@ export default function ProductDetailPage() {
     setIsAdding(false);
   };
 
-  if (loading) return <div className="p-20 text-center">Cargando producto...</div>;
-  if (!product) return <div className="p-20 text-center">Producto no encontrado 😢</div>;
+  if (loading) return <div className="p-20 text-center">{t("loadingProduct")}</div>;
+  if (!product) return <div className="p-20 text-center">{t("notFound")} 😢</div>;
 
   // Precio dinámico: Si elegí variante, muestra precio variante, si no precio base
   const currentPrice = selectedVariant ? selectedVariant.price : product.price;
@@ -140,7 +143,7 @@ export default function ProductDetailPage() {
         {/* COLUMNA DERECHA: INFO Y COMPRA */}
         <div>
           <h1 className="text-4xl font-bold mb-2">{product.name}</h1>
-          <p className="text-gray-500 mb-6 text-sm">Categoría: {product.category?.name}</p>
+          <p className="text-gray-500 mb-6 text-sm">{tc("category")}: {product.category?.name}</p>
           
           <div className="text-3xl font-bold mb-6">${currentPrice}</div>
 
@@ -151,7 +154,7 @@ export default function ProductDetailPage() {
           {/* SELECTOR DE VARIANTES (Solo si existen) */}
           {product.variants.length > 0 && (
             <div className="mb-8">
-              <h3 className="font-bold mb-3">Opciones Disponibles:</h3>
+              <h3 className="font-bold mb-3">{t("availableOptions")}:</h3>
               <div className="flex flex-wrap gap-3">
                 {product.variants.map((variant: any) => (
                   <button
@@ -176,11 +179,11 @@ export default function ProductDetailPage() {
           <div className="mb-6">
             {currentStock > 0 ? (
               <span className="flex items-center text-green-600 font-medium gap-2">
-                <Check size={20} /> Disponible ({currentStock} en stock)
+                <Check size={20} /> {t("inStock", { count: currentStock })}
               </span>
             ) : (
               <span className="flex items-center text-red-600 font-medium gap-2">
-                <AlertCircle size={20} /> Agotado
+                <AlertCircle size={20} /> {t("outOfStock")}
               </span>
             )}
           </div>
@@ -208,7 +211,7 @@ export default function ProductDetailPage() {
             >
               
                {/* <ShoppingCart size={16} /> */}
-              {isAdding ? "Agregando..." : "Agregar al Carrito"} 
+              {isAdding ? t("adding") : t("addToCart")} 
             </button>
 
 
@@ -217,7 +220,7 @@ export default function ProductDetailPage() {
         disabled={currentStock === 0 || isAdding}
         className="flex-1 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 transition"
       >
-        Comprar Ahora
+        {t("buyNow")}
       </button>
           </div>
 

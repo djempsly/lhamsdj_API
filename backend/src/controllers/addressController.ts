@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { t } from '../i18n/t';
 import { AddressService } from '../services/addressService';
 import { createAddressSchema } from '../validation/addressSchema';
 
@@ -28,7 +29,7 @@ export const deleteAddress = async (req: Request, res: Response) => {
     const userId = req.user?.id!;
     const { id } = req.params;
     await AddressService.delete(userId, Number(id));
-    res.json({ success: true, message: 'Dirección eliminada' });
+    res.json({ success: true, message: t(req.locale, 'address.deleted') });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
