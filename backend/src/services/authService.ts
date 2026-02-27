@@ -1,20 +1,23 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
-import { sendVerificationCode } from '../utils/sender';
+import { sendVerificationCode, sendEmailVerification } from '../utils/sender';
 import {
   generateAccessToken,
   generateRefreshToken,
+  generateEmailVerificationToken,
+  verifyEmailVerificationToken,
   storeRefreshToken,
   validateRefreshToken,
   revokeRefreshToken,
   revokeAllUserTokens,
 } from '../utils/tokens';
+import { Locale } from '../i18n/t';
 
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutos
+const LOCK_DURATION_MS = 30 * 60 * 1000;
 
 export const AuthService = {
-  async register(data: { email: string; password: string; name: string; phone?: string | undefined }) {
+  async register(data: { email: string; password: string; name: string; phone?: string | undefined }, locale?: Locale) {
     const { email, password, name, phone } = data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -27,11 +30,25 @@ export const AuthService = {
       select: { id: true, name: true, email: true, role: true, isVerified: true },
     });
 
-    const accessToken = generateAccessToken({ id: newUser.id, role: newUser.role, email: newUser.email });
-    const refreshToken = generateRefreshToken();
-    await storeRefreshToken(newUser.id, refreshToken);
+    const verificationToken = generateEmailVerificationToken(email);
+    await sendEmailVerification(email, verificationToken, locale);
 
-    return { user: newUser, accessToken, refreshToken };
+    return { user: newUser };
+  },
+
+  async verifyEmail(token: string) {
+    const { email } = verifyEmailVerificationToken(token);
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error('USER_NOT_FOUND');
+    if (user.isVerified) return { alreadyVerified: true };
+
+    await prisma.user.update({
+      where: { email },
+      data: { isVerified: true },
+    });
+
+    return { alreadyVerified: false };
   },
 
   async login(data: { email: string; password: string }, userAgent?: string) {
@@ -40,6 +57,7 @@ export const AuthService = {
 
     if (!user) throw new Error('Credenciales inválidas');
     if (!user.isActive) throw new Error('Cuenta desactivada');
+    if (!user.isVerified) throw new Error('EMAIL_NOT_VERIFIED');
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);

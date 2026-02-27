@@ -8,6 +8,7 @@ import { audit, AuditActions } from '../lib/audit';
 
 function translateAuthError(locale: string | undefined, errorMessage: string): string {
   if (errorMessage === 'DUPLICATE_EMAIL') return t(locale, 'auth.accountCreated');
+  if (errorMessage === 'EMAIL_NOT_VERIFIED') return t(locale, 'auth.emailNotVerified');
   if (errorMessage === 'Credenciales inválidas') return t(locale, 'auth.invalidCredentials');
   if (errorMessage === 'Cuenta desactivada') return t(locale, 'auth.accountDeactivated');
   const lockedMatch = errorMessage.match(/Cuenta bloqueada\. Intenta en (\d+) minutos\./);
@@ -35,8 +36,7 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const validatedData = registerSchema.parse(fields);
-    const { user, accessToken, refreshToken } = await AuthService.register(validatedData);
-    setAuthCookies(res, accessToken, refreshToken);
+    const { user } = await AuthService.register(validatedData, req.locale);
     await audit({ userId: user.id, action: AuditActions.REGISTER, entity: 'User', entityId: user.id, ip: req.ip, userAgent: req.headers['user-agent'] });
     res.status(201).json({ success: true, message: t(req.locale, 'auth.accountCreated') });
   } catch (error: any) {
@@ -45,6 +45,25 @@ export const register = async (req: Request, res: Response) => {
     }
     const message = translateAuthError(req.locale, error.message) || error.errors;
     res.status(400).json({ success: false, message });
+  }
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const token = req.params.token as string;
+    if (!token) {
+      return res.status(400).json({ success: false, message: t(req.locale, 'auth.invalidRequest') });
+    }
+    const result = await AuthService.verifyEmail(token);
+    if (result.alreadyVerified) {
+      return res.json({ success: true, message: t(req.locale, 'auth.alreadyVerified') });
+    }
+    res.json({ success: true, message: t(req.locale, 'auth.emailVerified') });
+  } catch (error: any) {
+    const msg = error.name === 'TokenExpiredError'
+      ? t(req.locale, 'auth.verifyLinkExpired')
+      : t(req.locale, 'auth.verifyLinkInvalid');
+    res.status(400).json({ success: false, message: msg });
   }
 };
 
@@ -58,8 +77,14 @@ export const login = async (req: Request, res: Response) => {
     res.json({ success: true, user });
   } catch (error: any) {
     await audit({ action: AuditActions.LOGIN_FAILED, entity: 'User', details: error.message, ip: req.ip, userAgent: req.headers['user-agent'] });
-    const status = error.message?.includes('bloqueada') ? 429 : 401;
-    res.status(status).json({ success: false, message: translateAuthError(req.locale, error.message) });
+    const isLocked = error.message?.includes('bloqueada');
+    const isNotVerified = error.message === 'EMAIL_NOT_VERIFIED';
+    const status = isLocked ? 429 : isNotVerified ? 403 : 401;
+    res.status(status).json({
+      success: false,
+      message: translateAuthError(req.locale, error.message),
+      ...(isNotVerified && { code: 'EMAIL_NOT_VERIFIED' }),
+    });
   }
 };
 

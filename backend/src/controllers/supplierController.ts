@@ -1,14 +1,17 @@
 import { Request, Response } from 'express';
 import { SupplierService } from '../services/supplierService';
 import { DropshipService } from '../services/dropshipService';
+import { SUPPORTED_ADAPTER_TYPES, registerFromConfig } from '../dropshipping/adapterRegistry';
 import { parsePagination } from '../utils/pagination';
 import { z } from 'zod';
 
 const createSchema = z.object({
   name: z.string().min(2).max(100),
   apiType: z.string().max(50).optional(),
-  apiBaseUrl: z.string().url().optional(),
+  apiBaseUrl: z.string().url().optional().or(z.literal('')).transform(v => v || undefined),
   apiKey: z.string().max(500).optional(),
+  webhookSecret: z.string().max(500).optional(),
+  contactEmail: z.string().email().optional().or(z.literal('')).transform(v => v || undefined),
   country: z.string().min(2).max(100),
   currency: z.string().length(3).optional(),
   leadTimeDays: z.number().int().min(1).max(90).optional(),
@@ -34,10 +37,19 @@ const importSchema = z.object({
   })).min(1).max(100),
 });
 
+export const getAdapterTypes = async (_req: Request, res: Response) => {
+  res.json({ success: true, data: SUPPORTED_ADAPTER_TYPES });
+};
+
 export const createSupplier = async (req: Request, res: Response) => {
   try {
     const data = createSchema.parse(req.body);
     const supplier = await SupplierService.create(data);
+
+    if (supplier.apiType !== 'MANUAL' && supplier.apiKey) {
+      registerFromConfig(supplier.apiType, supplier.apiBaseUrl || '', supplier.apiKey);
+    }
+
     res.status(201).json({ success: true, data: supplier });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -67,6 +79,11 @@ export const getSupplier = async (req: Request, res: Response) => {
 export const updateSupplier = async (req: Request, res: Response) => {
   try {
     const supplier = await SupplierService.update(Number(req.params.id), req.body);
+
+    if (supplier.apiType !== 'MANUAL' && supplier.apiKey) {
+      registerFromConfig(supplier.apiType, supplier.apiBaseUrl || '', supplier.apiKey);
+    }
+
     res.json({ success: true, data: supplier });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -118,5 +135,24 @@ export const getSupplierOrders = async (req: Request, res: Response) => {
     res.json({ success: true, ...result });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const testConnection = async (req: Request, res: Response) => {
+  try {
+    const supplier = await SupplierService.getById(Number(req.params.id));
+    if (!supplier) return res.status(404).json({ success: false, message: 'Supplier not found' });
+    if (!supplier.apiBaseUrl) return res.status(400).json({ success: false, message: 'No API URL configured' });
+
+    const { getAdapter } = await import('../dropshipping/adapterRegistry');
+    const adapter = getAdapter(supplier.apiType);
+
+    const start = Date.now();
+    const product = await adapter.getProduct('test');
+    const latency = Date.now() - start;
+
+    res.json({ success: true, data: { connected: true, latencyMs: latency, adapterName: adapter.name } });
+  } catch (error: any) {
+    res.json({ success: true, data: { connected: false, error: error.message } });
   }
 };

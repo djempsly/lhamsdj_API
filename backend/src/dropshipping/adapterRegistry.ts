@@ -1,6 +1,8 @@
 import { SupplierAdapter } from './types';
 import { manualAdapter } from './manualAdapter';
 import { createGenericApiAdapter } from './genericApiAdapter';
+import { createCJDropshippingAdapter } from './cjDropshippingAdapter';
+import { createPrintfulAdapter } from './printfulAdapter';
 import logger from '../lib/logger';
 
 const adapters = new Map<string, SupplierAdapter>();
@@ -16,16 +18,31 @@ export function getAdapter(apiType: string): SupplierAdapter {
   return adapters.get(apiType.toUpperCase()) || manualAdapter;
 }
 
-/**
- * Register a supplier adapter from DB config.
- * Called at startup for each supplier with apiType != MANUAL.
- */
+const KNOWN_ADAPTERS: Record<string, (config: { apiKey: string; baseUrl?: string }) => SupplierAdapter> = {
+  CJ_DROPSHIPPING: (c) => createCJDropshippingAdapter({ apiKey: c.apiKey }),
+  PRINTFUL: (c) => createPrintfulAdapter({ apiKey: c.apiKey }),
+};
+
 export function registerFromConfig(apiType: string, baseUrl: string, apiKey: string) {
-  if (apiType === 'MANUAL' || !baseUrl || !apiKey) return;
-  const adapter = createGenericApiAdapter({ name: apiType, baseUrl, apiKey });
-  registerAdapter(apiType, adapter);
+  if (apiType === 'MANUAL' || !apiKey) return;
+
+  const key = apiType.toUpperCase();
+  const factory = KNOWN_ADAPTERS[key];
+
+  if (factory) {
+    registerAdapter(key, factory({ apiKey, baseUrl }));
+  } else if (baseUrl) {
+    registerAdapter(key, createGenericApiAdapter({ name: apiType, baseUrl, apiKey }));
+  }
 }
 
 export function listAdapters(): string[] {
   return Array.from(adapters.keys());
 }
+
+export const SUPPORTED_ADAPTER_TYPES = [
+  { value: 'MANUAL', label: 'Manual (no API)', requiresUrl: false },
+  { value: 'CJ_DROPSHIPPING', label: 'CJ Dropshipping', requiresUrl: false },
+  { value: 'PRINTFUL', label: 'Printful', requiresUrl: false },
+  { value: 'GENERIC_API', label: 'Generic REST API', requiresUrl: true },
+] as const;

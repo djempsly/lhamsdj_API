@@ -64,6 +64,21 @@ export const CurrencyService = {
     return await prisma.country.findMany({ orderBy: { name: 'asc' } });
   },
 
+  async detectForCountry(countryCode: string) {
+    const country = await prisma.country.findUnique({ where: { code: countryCode } });
+    if (!country) return { country: countryCode, currency: 'USD', rate: 1, symbol: '$' };
+
+    const currency = await prisma.currency.findUnique({ where: { code: country.currencyCode } });
+    return {
+      country: country.code,
+      countryName: country.name,
+      currency: country.currencyCode,
+      rate: currency ? Number(currency.rate) : 1,
+      symbol: currency?.symbol || country.currencyCode,
+      shippingZone: country.shippingZone,
+    };
+  },
+
   async seedCountries() {
     const countries = [
       { code: 'US', name: 'United States', currencyCode: 'USD', shippingZone: 'DOMESTIC' },

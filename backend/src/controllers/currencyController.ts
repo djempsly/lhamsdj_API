@@ -54,3 +54,16 @@ export const seedCountries = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const detectCurrency = async (req: Request, res: Response) => {
+  try {
+    const countryCode = (req.query.country as string || '').toUpperCase();
+    if (!countryCode || countryCode.length !== 2) {
+      return res.status(400).json({ success: false, message: 'Country code required (ISO 2-letter)' });
+    }
+    const result = await CurrencyService.detectForCountry(countryCode);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};

@@ -96,6 +96,41 @@ export async function getSuppliers() {
   return await res.json();
 }
 
+export async function getSupplier(id: number) {
+  const res = await fetch(`${API_URL}/suppliers/${id}`, { credentials: "include", cache: "no-store" });
+  return await res.json();
+}
+
+export async function createSupplier(body: Record<string, unknown>) {
+  const res = await fetch(`${API_URL}/suppliers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function updateSupplier(id: number, body: Record<string, unknown>) {
+  const res = await fetch(`${API_URL}/suppliers/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function getAdapterTypes() {
+  const res = await fetch(`${API_URL}/suppliers/adapter-types`, { credentials: "include", cache: "no-store" });
+  return await res.json();
+}
+
+export async function testSupplierConnection(id: number) {
+  const res = await fetch(`${API_URL}/suppliers/${id}/test`, { method: "POST", credentials: "include" });
+  return await res.json();
+}
+
 export async function getAuditLogs(params?: { page?: number; limit?: number; action?: string; entity?: string }) {
   const sp = new URLSearchParams();
   if (params?.page != null) sp.set("page", String(params.page));

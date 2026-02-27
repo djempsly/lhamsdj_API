@@ -61,3 +61,13 @@ export async function revokeAllUserTokens(userId: number) {
     data: { revoked: true },
   });
 }
+
+export function generateEmailVerificationToken(email: string): string {
+  return jwt.sign({ email, purpose: 'email-verify' }, SECRET, { expiresIn: '24h' });
+}
+
+export function verifyEmailVerificationToken(token: string): { email: string } {
+  const payload = jwt.verify(token, SECRET) as { email: string; purpose: string };
+  if (payload.purpose !== 'email-verify') throw new Error('Invalid token purpose');
+  return { email: payload.email };
+}

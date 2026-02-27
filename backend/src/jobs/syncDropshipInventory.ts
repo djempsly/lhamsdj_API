@@ -44,6 +44,14 @@ async function syncOrders() {
   }
 }
 
+async function retryFailed() {
+  try {
+    await DropshipService.retryFailedOrders();
+  } catch (err) {
+    logger.error({ err }, 'Dropship retry failed');
+  }
+}
+
 async function registerAdaptersFromDB() {
   const suppliers = await prisma.supplier.findMany({ where: { status: 'ACTIVE', apiType: { not: 'MANUAL' } } });
   for (const s of suppliers) {
@@ -53,7 +61,8 @@ async function registerAdaptersFromDB() {
   }
 }
 
-const SYNC_INTERVAL = 30 * 60 * 1000; // cada 30 min
+const SYNC_INTERVAL = 30 * 60 * 1000; // 30 min
+const RETRY_INTERVAL = 2 * 60 * 1000; // 2 min
 
 export function startDropshipSyncJob() {
   registerAdaptersFromDB();
@@ -68,5 +77,7 @@ export function startDropshipSyncJob() {
     syncOrders();
   }, SYNC_INTERVAL);
 
-  logger.info('Dropship sync job started (runs every 30 min)');
+  setInterval(retryFailed, RETRY_INTERVAL);
+
+  logger.info('Dropship sync job started (inventory/orders: 30min, retries: 2min)');
 }

@@ -85,6 +85,14 @@ export const MercadoPagoService = {
         });
 
         logger.info({ orderId, mpPaymentId: paymentId }, 'MercadoPago payment approved');
+
+        try {
+          const { DropshipService } = await import('./dropshipService');
+          const forwarded = await DropshipService.fulfillOrder(orderId);
+          if (forwarded > 0) logger.info({ orderId, forwarded }, 'Auto-fulfillment triggered from MercadoPago');
+        } catch (err: any) {
+          logger.error({ orderId, err: err.message }, 'Auto-fulfillment failed (MercadoPago)');
+        }
       }
     } catch (err: any) {
       logger.error({ err: err.message }, 'MercadoPago webhook processing failed');

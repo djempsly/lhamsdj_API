@@ -4,41 +4,38 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { loginUser } from "@/services/authService";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { AlertTriangle } from "lucide-react";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
-  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
+  const [isVerificationError, setIsVerificationError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsVerificationError(false);
     setLoading(true);
 
     const res = await loginUser(formData);
     setLoading(false);
 
     if (res.success) {
-
-      window.location.href = "/"; 
-    //    // 1. Disparamos un evento personalizado para avisar a toda la app
-    // window.dispatchEvent(new Event("auth-change"));
-    
-    // // 2. Redirigimos (router.push es suave, no recarga la página)
-    // router.push("/"); 
       if (res.user.role === 'ADMIN') {
-        router.push("/admin/dashboard"); // Aún no existe, dará 404, luego la creamos
+        window.location.href = "/admin/dashboard";
       } else {
-        router.push("/");
+        window.location.href = "/";
       }
     } else {
-      setError(res.message || t("invalidCredentials"));
+      const msg = res.message || t("invalidCredentials");
+      const isNotVerified = msg.includes("verify") || msg.includes("vérif") || res.code === 'EMAIL_NOT_VERIFIED';
+      setIsVerificationError(isNotVerified);
+      setError(msg);
     }
   };
 
@@ -51,8 +48,11 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm border border-red-200">
-            {error}
+          <div className={`p-4 rounded-lg mb-6 text-sm border ${isVerificationError ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
+            <div className="flex items-start gap-2">
+              {isVerificationError && <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" />}
+              <span>{error}</span>
+            </div>
           </div>
         )}
 
@@ -61,13 +61,13 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
-               name="email" 
+              name="email"
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
-              placeholder="mitienda@lhamsdj.com"
-              value={formData.email} // Controlado por React
+              placeholder="you@example.com"
+              value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              autoComplete="email" // 2. Truco: 'new-password' a veces evita el autofill agresivo
+              autoComplete="email"
             />
           </div>
 
@@ -80,28 +80,17 @@ export default function LoginPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
               placeholder="********"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
-              autoComplete="new-password" // 3. Esto evita que Chrome lo llene automáticamente al cargar
+              autoComplete="current-password"
             />
-
-             <div className="flex justify-end mt-1">
-              <Link 
-                href="/auth/forgot-password" 
+            <div className="flex justify-end mt-1">
+              <Link
+                href="/auth/forgot-password"
                 className="text-xs text-blue-600 hover:underline font-medium"
               >
                 {t("forgotPassword")}
               </Link>
             </div>
-
-
-
-            
           </div>
-
-
-
-
-
-          
 
           <button
             type="submit"

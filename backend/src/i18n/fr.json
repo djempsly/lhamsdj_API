@@ -19,6 +19,11 @@
   "auth.codeExpired": "Le code a expiré",
   "auth.wrongCode": "Code incorrect",
   "auth.userNotFound": "Utilisateur non trouvé",
+  "auth.emailNotVerified": "Veuillez vérifier votre e-mail avant de vous connecter. Consultez votre boîte de réception.",
+  "auth.emailVerified": "E-mail vérifié avec succès ! Vous pouvez maintenant vous connecter.",
+  "auth.alreadyVerified": "L'e-mail est déjà vérifié. Vous pouvez vous connecter.",
+  "auth.verifyLinkExpired": "Le lien de vérification a expiré. Veuillez vous réinscrire.",
+  "auth.verifyLinkInvalid": "Lien de vérification invalide.",
 
   "order.created": "Commande créée avec succès",
   "order.notFound": "Commande non trouvée",
@@ -132,6 +137,12 @@
   "validation.countryRequired": "Le pays est obligatoire",
   "validation.categoryMinChars": "Le nom doit avoir au moins 3 caractères",
   "validation.ratingRange": "La note doit être entre 1 et 5 étoiles",
+
+  "email.verifySubject": "Vérifiez votre e-mail - LhamsDJ",
+  "email.verifyTitle": "Vérifiez Votre E-mail",
+  "email.verifyDescription": "Cliquez sur le bouton ci-dessous pour vérifier votre adresse e-mail et activer votre compte.",
+  "email.verifyButton": "Vérifier Mon E-mail",
+  "email.verifyExpiry": "Ce lien expire dans 24 heures.",
 
   "email.recoverySubject": "Code de récupération - LhamsDJ",
   "email.recoveryTitle": "Récupération de mot de passe",

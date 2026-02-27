@@ -491,17 +491,19 @@ enum SupplierOrderStatus {
 }
 
 model Supplier {
-  id           Int            @id @default(autoincrement())
-  name         String
-  slug         String         @unique
-  apiType      String         @default("MANUAL")
-  apiBaseUrl   String?
-  apiKey       String?
-  country      String
-  currency     String         @default("USD")
-  leadTimeDays Int            @default(7)
-  status       SupplierStatus @default(ACTIVE)
-  notes        String?        @db.Text
+  id             Int            @id @default(autoincrement())
+  name           String
+  slug           String         @unique
+  apiType        String         @default("MANUAL")
+  apiBaseUrl     String?
+  apiKey         String?
+  webhookSecret  String?
+  contactEmail   String?
+  country        String
+  currency       String         @default("USD")
+  leadTimeDays   Int            @default(7)
+  status         SupplierStatus @default(ACTIVE)
+  notes          String?        @db.Text
 
   products     SupplierProduct[]
   orders       SupplierOrder[]
@@ -541,6 +543,8 @@ model SupplierOrder {
   trackingNumber    String?
   supplierCost      Decimal             @db.Decimal(10, 2)
   notes             String?
+  retryCount        Int                 @default(0)
+  nextRetryAt       DateTime?
   sentAt            DateTime?
   confirmedAt       DateTime?
 
@@ -549,6 +553,7 @@ model SupplierOrder {
 
   @@index([supplierId, status])
   @@index([orderId])
+  @@index([nextRetryAt])
   @@map("supplier_orders")
 }
 

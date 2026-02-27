@@ -72,6 +72,14 @@ export const PaymentService = {
       });
 
       logger.info({ orderId }, 'Order marked as PAID');
+
+      try {
+        const { DropshipService } = await import('./dropshipService');
+        const forwarded = await DropshipService.fulfillOrder(orderId);
+        if (forwarded > 0) logger.info({ orderId, forwarded }, 'Auto-fulfillment triggered from Stripe');
+      } catch (err: any) {
+        logger.error({ orderId, err: err.message }, 'Auto-fulfillment failed (Stripe)');
+      }
     }
   },
 };
