@@ -102,15 +102,31 @@ model User {
   loginAttempts    Int       @default(0)
   lockedUntil      DateTime?
 
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean   @default(false)
+  loyaltyPoints    Int       @default(0)
+  loyaltyTier      String    @default("BRONZE")
+  referralCode     String?   @unique
+  referredBy       Int?
+
   addresses      Address[]
   cart           Cart?
   orders         Order[]
   reviews        Review[]
   refreshTokens  RefreshToken[]
   vendor         Vendor?
-  wishlistItems  WishlistItem[]
-  notifications  Notification[]
-  disputes       Dispute[]
+  wishlistItems    WishlistItem[]
+  notifications    Notification[]
+  disputes         Dispute[]
+  disputeMessages  DisputeMessage[]
+  sessions             ActiveSession[]
+  sentMessages         Message[]            @relation("SentMessages")
+  receivedMessages     Message[]            @relation("ReceivedMessages")
+  supportTickets       SupportTicket[]
+  questions            ProductQuestion[]
+  loyaltyTransactions  LoyaltyTransaction[]
+  recentlyViewed       RecentlyViewed[]
+  backupCodes          TwoFactorBackupCode[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -236,6 +252,10 @@ model Product {
   orderItems       OrderItem[]
   wishlistItems    WishlistItem[]
   supplierProducts SupplierProduct[]
+  questions        ProductQuestion[]
+  flashSaleItems   FlashSaleItem[]
+  bundleItems      BundleItem[]
+  recentlyViewed   RecentlyViewed[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -451,18 +471,19 @@ model Notification {
 // ─── DISPUTES ────────────────────────────────────────────
 
 model Dispute {
-  id          Int           @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   orderId     Int
-  order       Order         @relation(fields: [orderId], references: [id])
+  order       Order            @relation(fields: [orderId], references: [id])
   userId      Int
-  user        User          @relation(fields: [userId], references: [id])
+  user        User             @relation(fields: [userId], references: [id])
   vendorId    Int?
-  vendor      Vendor?       @relation(fields: [vendorId], references: [id])
+  vendor      Vendor?          @relation(fields: [vendorId], references: [id])
   type        DisputeType
-  status      DisputeStatus @default(OPEN)
-  description String        @db.Text
-  resolution  String?       @db.Text
+  status      DisputeStatus    @default(OPEN)
+  description String           @db.Text
+  resolution  String?          @db.Text
   resolvedAt  DateTime?
+  messages    DisputeMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -470,6 +491,21 @@ model Dispute {
   @@index([orderId])
   @@index([status])
   @@map("disputes")
+}
+
+model DisputeMessage {
+  id          Int      @id @default(autoincrement())
+  disputeId   Int
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  message     String   @db.Text
+  attachments String?
+
+  createdAt DateTime @default(now())
+
+  @@index([disputeId])
+  @@map("dispute_messages")
 }
 
 // ─── DROPSHIPPING ────────────────────────────────────────
@@ -597,4 +633,241 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ─── TWO FACTOR AUTH ────────────────────────────────────
+model TwoFactorBackupCode {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code   String
+  used   Boolean @default(false)
+  @@index([userId])
+  @@map("two_factor_backup_codes")
+}
+
+// ─── ACTIVE SESSIONS ────────────────────────────────────
+model ActiveSession {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  ip        String?
+  userAgent String?
+  country   String?
+  lastActive DateTime @default(now())
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@map("active_sessions")
+}
+
+// ─── MESSAGES (Buyer-Seller) ────────────────────────────
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId Int
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  orderId    Int?
+  subject    String?
+  body       String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([orderId])
+  @@map("messages")
+}
+
+// ─── SUPPORT TICKETS ────────────────────────────────────
+model SupportTicket {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  subject     String
+  description String   @db.Text
+  status      String   @default("OPEN")
+  priority    String   @default("MEDIUM")
+  assignedTo  Int?
+  responses   TicketResponse[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([userId, status])
+  @@map("support_tickets")
+}
+
+model TicketResponse {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    Int
+  message   String   @db.Text
+  isStaff   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@map("ticket_responses")
+}
+
+// ─── PRODUCT Q&A ────────────────────────────────────────
+model ProductQuestion {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  question  String   @db.Text
+  answer    String?  @db.Text
+  answeredBy Int?
+  answeredAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([productId])
+  @@map("product_questions")
+}
+
+// ─── FLASH SALES ────────────────────────────────────────
+model FlashSale {
+  id        Int      @id @default(autoincrement())
+  name      String
+  discount  Decimal  @db.Decimal(5, 2)
+  startsAt  DateTime
+  endsAt    DateTime
+  isActive  Boolean  @default(true)
+  items     FlashSaleItem[]
+  createdAt DateTime @default(now())
+  @@map("flash_sales")
+}
+
+model FlashSaleItem {
+  id          Int       @id @default(autoincrement())
+  flashSaleId Int
+  flashSale   FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id])
+  salePrice   Decimal   @db.Decimal(10, 2)
+  stock       Int       @default(0)
+  sold        Int       @default(0)
+  @@unique([flashSaleId, productId])
+  @@map("flash_sale_items")
+}
+
+// ─── GIFT CARDS ─────────────────────────────────────────
+model GiftCard {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  balance     Decimal  @db.Decimal(10, 2)
+  initialValue Decimal @db.Decimal(10, 2)
+  buyerId     Int?
+  recipientEmail String?
+  isActive    Boolean  @default(true)
+  expiresAt   DateTime?
+  redeemedBy  Int?
+  createdAt   DateTime @default(now())
+  @@map("gift_cards")
+}
+
+// ─── PRODUCT BUNDLES ────────────────────────────────────
+model Bundle {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  discount    Decimal  @db.Decimal(5, 2) @default(0)
+  isActive    Boolean  @default(true)
+  items       BundleItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("bundles")
+}
+
+model BundleItem {
+  id        Int     @id @default(autoincrement())
+  bundleId  Int
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+  @@unique([bundleId, productId])
+  @@map("bundle_items")
+}
+
+// ─── NEWSLETTER ─────────────────────────────────────────
+model NewsletterSubscriber {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  isActive  Boolean  @default(true)
+  locale    String   @default("en")
+  createdAt DateTime @default(now())
+  @@map("newsletter_subscribers")
+}
+
+// ─── LOYALTY / REFERRALS ────────────────────────────────
+model LoyaltyTransaction {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  points    Int
+  type      String
+  description String
+  orderId   Int?
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@map("loyalty_transactions")
+}
+
+// ─── RECENTLY VIEWED ────────────────────────────────────
+model RecentlyViewed {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime @default(now())
+  @@unique([userId, productId])
+  @@index([userId, viewedAt])
+  @@map("recently_viewed")
+}
+
+// ─── TAX RULES ──────────────────────────────────────────
+model TaxRule {
+  id          Int      @id @default(autoincrement())
+  country     String
+  state       String?
+  taxRate     Decimal  @db.Decimal(5, 4)
+  name        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  @@unique([country, state])
+  @@map("tax_rules")
+}
+
+// ─── LEGAL DOCUMENTS ────────────────────────────────────
+model LegalDocument {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  titleEn   String
+  titleFr   String
+  titleEs   String
+  contentEn String   @db.Text
+  contentFr String   @db.Text
+  contentEs String   @db.Text
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  @@map("legal_documents")
+}
+
+// ─── COOKIE CONSENT ─────────────────────────────────────
+model CookieConsent {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  sessionId   String?
+  analytics   Boolean  @default(false)
+  marketing   Boolean  @default(false)
+  functional  Boolean  @default(true)
+  ip          String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("cookie_consents")
 }

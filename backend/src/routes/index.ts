@@ -22,12 +22,20 @@ import wishlistRoutes from './wishlistRoutes';
 import notificationRoutes from './notificationRoutes';
 import statsRoutes from './statsRoutes';
 import auditRoutes from './auditRoutes';
+import disputeRoutes from './disputeRoutes';
+import twoFactorRoutes from './twoFactorRoutes';
+import searchRoutes from './searchRoutes';
+import messageRoutes from './messageRoutes';
+import ticketRoutes from './ticketRoutes';
+import marketplaceRoutes from './marketplaceRoutes';
+import analyticsRoutes from './analyticsRoutes';
 
 const router = Router();
 
 // Auth & Users
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/2fa', twoFactorRoutes);
 
 // Catalog
 router.use('/categories', categoryRoutes);
@@ -36,6 +44,7 @@ router.use('/variants', variantRoutes);
 router.use('/product-images', productImageRoutes);
 
 // Shopping
+router.use('/search', searchRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/payments', paymentRoutes);
@@ -51,12 +60,17 @@ router.use('/shipping', shippingRoutes);
 router.use('/currencies', currencyRoutes);
 
 // Engagement
+router.use('/marketplace', marketplaceRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/disputes', disputeRoutes);
+router.use('/messages', messageRoutes);
+router.use('/tickets', ticketRoutes);
 
 // Admin
 router.use('/stats', statsRoutes);
 router.use('/audit', auditRoutes);
+router.use('/analytics', analyticsRoutes);
 
 // Uploads
 router.use('/uploads', uploadRoutes);
