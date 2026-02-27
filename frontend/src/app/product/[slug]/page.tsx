@@ -7,6 +7,7 @@ import { getProductBySlug } from "@/services/productService";
 import { addToCart } from "@/services/cartService";
 import Image from "next/image";
 import { ShoppingCart, Check, AlertCircle } from "lucide-react";
+import ReviewSection from "@/components/product/ReviewSection";
 
 
 export default function ProductDetailPage() {
@@ -226,6 +227,8 @@ export default function ProductDetailPage() {
 
         </div>
       </div>
+
+      <ReviewSection productId={product.id} />
     </div>
   );
 }

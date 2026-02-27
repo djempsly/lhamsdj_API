@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart, Store, Tag, FileText, Package } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart, Store, Tag, FileText, Package, Truck, DollarSign, Wallet } from "lucide-react";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -14,10 +14,13 @@ export default function AdminSidebar() {
     { nameKey: "products", href: "/admin/products", icon: ShoppingBag },
     { nameKey: "categories", href: "/admin/categories", icon: List },
     { nameKey: "orders", href: "/admin/orders", icon: ShoppingCart },
+    { nameKey: "shipments", href: "/admin/shipments", icon: Truck },
     { nameKey: "users", href: "/admin/users", icon: Users },
     { nameKey: "vendors", href: "/admin/vendors", icon: Store },
     { nameKey: "suppliers", href: "/admin/suppliers", icon: Package },
     { nameKey: "coupons", href: "/admin/coupons", icon: Tag },
+    { nameKey: "currencies", href: "/admin/currencies", icon: DollarSign },
+    { nameKey: "payouts", href: "/admin/payouts", icon: Wallet },
     { nameKey: "auditLog", href: "/admin/audit", icon: FileText },
   ];
 

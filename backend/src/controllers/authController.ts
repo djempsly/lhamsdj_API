@@ -132,7 +132,7 @@ export const logoutAll = async (req: Request, res: Response) => {
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = forgotPasswordSchema.parse(req.body);
-    await AuthService.forgotPassword(email);
+    await AuthService.forgotPassword(email, req.locale);
     res.json({ success: true, message: t(req.locale, 'auth.resetEmailSent') });
   } catch (error: any) {
     const message = translateAuthError(req.locale, error.message) || error.message;

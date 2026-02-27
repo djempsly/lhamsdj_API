@@ -26,7 +26,12 @@ export const getMyVendorProfile = async (req: Request, res: Response) => {
 
 export const updateVendorProfile = async (req: Request, res: Response) => {
   try {
-    const data = updateVendorSchema.parse(req.body);
+    const raw = updateVendorSchema.parse(req.body);
+    const data: any = { ...raw };
+    if (raw.storeName) data.businessName = raw.storeName;
+    if (raw.logoUrl) data.logo = raw.logoUrl;
+    delete data.storeName;
+    delete data.logoUrl;
     const vendor = await VendorService.updateProfile(req.user?.id!, data);
     res.json({ success: true, data: vendor });
   } catch (error: any) {

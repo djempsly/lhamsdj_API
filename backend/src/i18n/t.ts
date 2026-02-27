@@ -1,11 +1,12 @@
 import en from './en.json';
 import fr from './fr.json';
+import es from './es.json';
 
-const messages: Record<string, Record<string, string>> = { en, fr };
+const messages: Record<string, Record<string, string>> = { en, fr, es };
 
-export type Locale = 'en' | 'fr';
+export type Locale = 'en' | 'fr' | 'es';
 export const defaultLocale: Locale = 'en';
-export const supportedLocales: Locale[] = ['en', 'fr'];
+export const supportedLocales: Locale[] = ['en', 'fr', 'es'];
 
 export function t(locale: string | undefined, key: string, params?: Record<string, string | number>): string {
   const lang = supportedLocales.includes(locale as Locale) ? (locale as Locale) : defaultLocale;

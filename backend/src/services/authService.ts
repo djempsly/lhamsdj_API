@@ -112,7 +112,7 @@ export const AuthService = {
     await revokeAllUserTokens(userId);
   },
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, locale?: Locale) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) return false;
 
@@ -125,7 +125,7 @@ export const AuthService = {
       data: { resetToken: hashedToken, resetTokenExpiry: expiry },
     });
 
-    await sendVerificationCode(email, code);
+    await sendVerificationCode(email, code, locale);
     return true;
   },
 

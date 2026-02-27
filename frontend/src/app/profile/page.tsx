@@ -525,6 +525,28 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {/* Vendor Panel (para usuarios con rol VENDOR) */}
+          {user.role === "VENDOR" && (
+            <div className="bg-black text-white p-6 rounded-xl shadow-lg">
+              <h3 className="text-lg font-bold mb-2">{t("vendorPanel")}</h3>
+              <p className="text-gray-300 text-sm mb-4">{t("vendorDesc")}</p>
+              <Link href="/vendor/dashboard" className="bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition inline-block">
+                {t("goToDashboard")}
+              </Link>
+            </div>
+          )}
+
+          {/* Become a Vendor (para usuarios que no son VENDOR) */}
+          {user.role !== "VENDOR" && (
+            <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm hover:shadow-md transition">
+              <h3 className="text-lg font-bold mb-2 text-gray-900">{t("becomeVendor")}</h3>
+              <p className="text-gray-500 text-sm mb-4">{t("becomeVendorDesc")}</p>
+              <Link href="/vendor/register" className="text-blue-600 font-medium hover:underline">
+                {t("vendorRegisterLink")} &rarr;
+              </Link>
+            </div>
+          )}
+
           {/* Opciones Generales */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b">

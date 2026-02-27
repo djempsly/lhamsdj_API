@@ -12,11 +12,20 @@ export const VendorService = {
     const existingVendor = await prisma.vendor.findUnique({ where: { userId } });
     if (existingVendor) throw new Error('Ya tienes una cuenta de vendedor');
 
-    const slug = generateSlug(data.businessName);
+    const businessName = data.storeName || data.businessName;
+    const slug = (data.storeSlug && data.storeSlug.trim()) ? data.storeSlug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '') : generateSlug(businessName);
+    const payload = {
+      businessName,
+      description: data.description ?? null,
+      taxId: data.taxId ?? null,
+      country: data.country ?? 'Global',
+      city: data.city ?? null,
+      type: data.type ?? 'STANDARD',
+    };
 
     const vendor = await prisma.$transaction(async (tx) => {
       const v = await tx.vendor.create({
-        data: { ...data, userId, slug, status: 'PENDING' },
+        data: { ...payload, userId, slug, status: 'PENDING' },
       });
       await tx.user.update({ where: { id: userId }, data: { role: 'VENDOR' } });
       return v;
@@ -91,7 +100,7 @@ export const VendorService = {
     const vendor = await prisma.vendor.findUnique({ where: { userId } });
     if (!vendor) throw new Error('No tienes cuenta de vendedor');
 
-    const [productCount, totalSales, pendingShipments, totalPayouts] = await Promise.all([
+    const [productCount, totalSales, pendingShipments, totalPayouts, recentOrders] = await Promise.all([
       prisma.product.count({ where: { vendorId: vendor.id } }),
       prisma.orderItem.aggregate({
         where: { product: { vendorId: vendor.id }, order: { paymentStatus: 'COMPLETED' } },
@@ -103,6 +112,14 @@ export const VendorService = {
         where: { vendorId: vendor.id, status: 'COMPLETED' },
         _sum: { amount: true },
       }),
+      prisma.order.findMany({
+        where: {
+          orderItems: { some: { product: { vendorId: vendor.id } } },
+        },
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
     ]);
 
     return {
@@ -111,6 +128,7 @@ export const VendorService = {
       totalOrders: totalSales._count,
       pendingShipments,
       totalPaidOut: totalPayouts._sum.amount || 0,
+      recentOrders,
     };
   },
 };

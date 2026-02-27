@@ -34,25 +34,26 @@ export default function MyOrdersPage() {
           <p className="text-center text-gray-500 py-10">{t("noPurchases")}</p>
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="border rounded-lg p-6 bg-white shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-              <div>
-                <p className="font-bold text-lg">{t("orderNumber")}{order.id}</p>
-                <p className="text-sm text-gray-500">{t("orderDate")}: {new Date(order.createdAt).toLocaleDateString()}</p>
-                <div className="mt-2 flex gap-2">
-                  <span className={`px-2 py-1 text-xs font-bold rounded ${order.status === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {order.status}
-                  </span>
-                  <span className="px-2 py-1 text-xs font-bold rounded bg-gray-100 text-gray-700">
-                    {order.orderItems.length} {t("items")}
-                  </span>
+            <Link key={order.id} href={`/profile/orders/${order.id}`}>
+              <div className="border rounded-lg p-6 bg-white shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 hover:border-gray-300 transition-colors cursor-pointer">
+                <div>
+                  <p className="font-bold text-lg">{t("orderNumber")}{order.id}</p>
+                  <p className="text-sm text-gray-500">{t("orderDate")}: {new Date(order.createdAt).toLocaleDateString()}</p>
+                  <div className="mt-2 flex gap-2">
+                    <span className={`px-2 py-1 text-xs font-bold rounded ${order.status === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {order.status}
+                    </span>
+                    <span className="px-2 py-1 text-xs font-bold rounded bg-gray-100 text-gray-700">
+                      {order.orderItems.length} {t("items")}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <p className="text-xl font-bold">${order.total}</p>
                 </div>
               </div>
-              
-              <div className="text-right">
-                <p className="text-xl font-bold">${order.total}</p>
-                {/* Aquí podrías poner un botón "Ver Detalle" en el futuro */}
-              </div>
-            </div>
+            </Link>
           ))
         )}
       </div>

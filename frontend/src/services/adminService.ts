@@ -152,3 +152,91 @@ export async function downloadOrdersCsv() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+export async function linkProductToSupplier(supplierId: number, body: { productId: number; externalSku: string; externalPrice: number }) {
+  const res = await fetch(`${API_URL}/suppliers/${supplierId}/link-product`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      productId: body.productId,
+      supplierSku: body.externalSku,
+      supplierPrice: body.externalPrice,
+    }),
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function unlinkProductFromSupplier(supplierId: number, productId: number) {
+  const res = await fetch(`${API_URL}/suppliers/${supplierId}/unlink-product/${productId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function importSupplierProducts(supplierId: number) {
+  const res = await fetch(`${API_URL}/suppliers/${supplierId}/import`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function getSupplierOrders(supplierId: number) {
+  const res = await fetch(`${API_URL}/suppliers/${supplierId}/orders`, {
+    credentials: "include",
+    cache: "no-store",
+  });
+  return await res.json();
+}
+
+export async function fulfillOrder(orderId: number) {
+  const res = await fetch(`${API_URL}/suppliers/fulfill/${orderId}`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function getShipments() {
+  const res = await fetch(`${API_URL}/shipments/admin/all`, {
+    credentials: "include",
+    cache: "no-store",
+  });
+  return await res.json();
+}
+
+export async function updateShipmentStatus(id: number, status: string) {
+  const res = await fetch(`${API_URL}/shipments/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function syncCurrencyRates() {
+  const res = await fetch(`${API_URL}/currencies/sync`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function seedCountries() {
+  const res = await fetch(`${API_URL}/currencies/seed-countries`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return await res.json();
+}
+
+export async function processVendorPayouts() {
+  const res = await fetch(`${API_URL}/vendor-payouts/process`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return await res.json();
+}

@@ -6,6 +6,7 @@ import {
   getSuppliers, createSupplier, updateSupplier,
   getAdapterTypes, testSupplierConnection,
 } from "@/services/adminService";
+import Link from "next/link";
 import { Plus, Pencil, Wifi, WifiOff, X, Eye, EyeOff, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface Supplier {
@@ -148,7 +149,9 @@ export default function AdminSuppliersPage() {
             {!loading && suppliers.map((s) => (
               <tr key={s.id} className="border-b hover:bg-gray-50">
                 <td className="p-4">
-                  <div className="font-medium">{s.name}</div>
+                  <Link href={`/admin/suppliers/${s.id}`} className="font-medium hover:underline text-blue-600">
+                    {s.name}
+                  </Link>
                   <div className="text-xs text-gray-400">{s.country} &middot; {s.currency}</div>
                 </td>
                 <td className="p-4">

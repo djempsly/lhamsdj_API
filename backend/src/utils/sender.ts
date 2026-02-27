@@ -4,19 +4,20 @@ import { t, Locale } from '../i18n/t';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-export const sendVerificationCode = async (email: string, code: string) => {
+export const sendVerificationCode = async (email: string, code: string, locale?: Locale) => {
+  const lang = locale || 'en';
   try {
     const { data, error } = await resend.emails.send({
       from: 'LhamsDJ <noreply@lhamsdj.com>',
       to: email,
-      subject: 'Recovery code - LhamsDJ',
+      subject: t(lang, 'email.recoverySubject'),
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Password Recovery</h2>
-          <p>Your verification code is:</p>
+          <h2 style="color: #333;">${t(lang, 'email.recoveryTitle')}</h2>
+          <p>${t(lang, 'email.verificationCode')}</p>
           <h1 style="color: #4F46E5; font-size: 32px; letter-spacing: 5px;">${code}</h1>
-          <p>This code expires in 15 minutes.</p>
-          <p style="color: #666; font-size: 12px;">If you did not request this code, ignore this message.</p>
+          <p>${t(lang, 'email.codeExpiry')}</p>
+          <p style="color: #666; font-size: 12px;">${t(lang, 'email.ignoreIfNotYou')}</p>
         </div>
       `
     });

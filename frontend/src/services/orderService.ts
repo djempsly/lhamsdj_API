@@ -26,3 +26,15 @@ export async function createOrder(addressId: number) {
     return { success: false, message: "Error de conexión" };
   }
 }
+
+export async function getOrderById(id: number) {
+  try {
+    const res = await fetch(`${API_URL}/orders/${id}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false };
+  }
+}
