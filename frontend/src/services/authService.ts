@@ -84,6 +84,20 @@ export async function verifyUserEmail(token: string) {
   }
 }
 
+export async function verifyByCode(email: string, code: string) {
+  try {
+    const res = await fetch(`${API_URL}/auth/verify-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+      credentials: "include",
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: "Error de conexión" };
+  }
+}
+
 export async function checkSession() {
   try {
     const res = await fetch(`${API_URL}/auth/me`, {

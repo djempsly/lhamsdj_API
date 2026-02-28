@@ -90,6 +90,10 @@
 
   "upload.noFile": "No file was uploaded",
   "upload.success": "Image uploaded successfully",
+  "upload.tooLarge": "File too large. Maximum 5MB.",
+  "upload.tooMany": "Too many files. Maximum 10.",
+  "upload.unexpectedField": "Unexpected file field.",
+  "upload.error": "Upload error",
 
   "product.categoryNotFound": "The specified category does not exist",
 
@@ -140,9 +144,11 @@
 
   "email.verifySubject": "Verify your email - LhamsDJ",
   "email.verifyTitle": "Verify Your Email",
-  "email.verifyDescription": "Click the button below to verify your email address and activate your account.",
+  "email.verifyDescription": "Use the code below or click the button to verify your email address and activate your account.",
+  "email.yourCode": "Your verification code",
+  "email.orClickButton": "or click the button",
   "email.verifyButton": "Verify My Email",
-  "email.verifyExpiry": "This link expires in 24 hours.",
+  "email.verifyExpiry": "This code and link expire in 24 hours.",
 
   "email.recoverySubject": "Recovery code - LhamsDJ",
   "email.recoveryTitle": "Password recovery",

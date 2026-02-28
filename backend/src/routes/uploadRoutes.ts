@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { uploadImage } from '../controllers/uploadController';
+import { uploadImage, uploadMultipleImages } from '../controllers/uploadController';
 import { upload } from '../middleware/uploadMiddleware';
 import { authenticate, requireAdmin } from '../middleware/authMiddleware';
 import { validateImageExtension } from '../middleware/imageValidator';
@@ -9,6 +9,15 @@ const router = Router();
 
 router.post(
   '/',
+  uploadLimiter,
+  authenticate,
+  requireAdmin,
+  upload.array('images', 10),
+  uploadMultipleImages,
+);
+
+router.post(
+  '/single',
   uploadLimiter,
   authenticate,
   requireAdmin,

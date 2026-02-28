@@ -1,3 +1,5 @@
+import { apiFetch } from "@/lib/apiFetch";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getCategories() {
@@ -6,29 +8,24 @@ export async function getCategories() {
 }
 
 export async function createCategory(data: { name: string; parentId?: number }) {
-  const res = await fetch(`${API_URL}/categories`, {
+  const res = await apiFetch(`${API_URL}/categories`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    credentials: "include", // 🍪 Importante para enviar la cookie de Admin
   });
   return await res.json();
 }
 
 export async function deleteCategory(id: number) {
-  const res = await fetch(`${API_URL}/categories/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
+  const res = await apiFetch(`${API_URL}/categories/${id}`, { method: "DELETE" });
   return await res.json();
 }
 
 export async function updateCategory(id: number, data: { name?: string }) {
-  const res = await fetch(`${API_URL}/categories/${id}`, {
+  const res = await apiFetch(`${API_URL}/categories/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    credentials: "include",
   });
   return await res.json();
 }

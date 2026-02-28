@@ -114,12 +114,16 @@
     "passwordReset": "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.",
     "createNewPassword": "Créer un Nouveau Mot de Passe",
     "verifyAccount": "Vérifier le Compte",
-    "enterDigitCode": "Entrez le code à 6 chiffres",
+    "enterDigitCode": "Entrez le code à 6 chiffres envoyé à votre e-mail",
+    "enterCodeDesc": "Nous avons envoyé un code de vérification à votre e-mail. Entrez-le ci-dessous ou cliquez sur le lien dans l'e-mail.",
     "verifying": "Vérification en cours...",
     "accountVerified": "Compte Vérifié !",
     "redirecting": "Redirection...",
     "verifyManually": "Vérifier Manuellement",
+    "verifyCode": "Vérifier le Code",
     "invalidCode": "Code invalide",
+    "codeExpired": "Code expiré. Veuillez vous réinscrire.",
+    "noEmail": "Aucun e-mail fourni",
     "loading": "Chargement..."
   },
   "products": {
@@ -488,6 +492,13 @@
       "coupons": "Coupons",
       "currencies": "Devises",
       "payouts": "Paiements",
+      "disputes": "Litiges",
+      "analytics": "Analytiques",
+      "flashSales": "Ventes flash",
+      "giftCards": "Cartes cadeaux",
+      "bundles": "Lots",
+      "taxRules": "Règles fiscales",
+      "tickets": "Tickets",
       "auditLog": "Journal d'Audit"
     }
   }

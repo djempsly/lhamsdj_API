@@ -128,9 +128,17 @@ export default function RegisterPage() {
           </div>
 
           <Link
+            href={`/auth/verify?email=${encodeURIComponent(registeredEmail)}`}
+            prefetch={false}
+            className="inline-block w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition mb-3"
+          >
+            {t("enterDigitCode")}
+          </Link>
+
+          <Link
             href="/auth/login"
             prefetch={false}
-            className="text-sm text-blue-600 hover:underline font-medium"
+            className="text-sm text-gray-500 hover:underline"
           >
             {t("goToLogin")}
           </Link>

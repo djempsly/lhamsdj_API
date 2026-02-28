@@ -1,12 +1,10 @@
+import { apiFetch } from "@/lib/apiFetch";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getCart() {
   try {
-    const res = await fetch(`${API_URL}/cart`, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    });
+    const res = await apiFetch(`${API_URL}/cart`, { method: "GET", cache: "no-store" });
     return await res.json();
   } catch (error) {
     return { success: false, data: null };
@@ -15,25 +13,23 @@ export async function getCart() {
 
 export async function addToCart(productId: number, quantity: number, variantId?: number) {
   try {
-    const res = await fetch(`${API_URL}/cart/items`, {
+    const res = await apiFetch(`${API_URL}/cart/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ productId, quantity, productVariantId: variantId }),
-      credentials: "include",
     });
     return await res.json();
   } catch (error) {
-    return { success: false, message: "Error de conexión" };
+    return { success: false, message: "Connection error" };
   }
 }
 
 export async function updateCartItem(itemId: number, quantity: number) {
   try {
-    const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
+    const res = await apiFetch(`${API_URL}/cart/items/${itemId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ quantity }),
-      credentials: "include",
     });
     return await res.json();
   } catch (error) {
@@ -43,10 +39,7 @@ export async function updateCartItem(itemId: number, quantity: number) {
 
 export async function removeCartItem(itemId: number) {
   try {
-    const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    const res = await apiFetch(`${API_URL}/cart/items/${itemId}`, { method: "DELETE" });
     return await res.json();
   } catch (error) {
     return { success: false };

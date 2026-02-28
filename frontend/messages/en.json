@@ -114,12 +114,16 @@
     "passwordReset": "Password reset. You can now log in.",
     "createNewPassword": "Create New Password",
     "verifyAccount": "Verify Account",
-    "enterDigitCode": "Enter the 6-digit code",
+    "enterDigitCode": "Enter the 6-digit code sent to your email",
+    "enterCodeDesc": "We sent a verification code to your email. Enter it below or click the link in the email.",
     "verifying": "Verifying...",
     "accountVerified": "Account Verified!",
     "redirecting": "Redirecting...",
     "verifyManually": "Verify Manually",
+    "verifyCode": "Verify Code",
     "invalidCode": "Invalid code",
+    "codeExpired": "Code expired. Please register again.",
+    "noEmail": "No email provided",
     "loading": "Loading..."
   },
   "products": {
@@ -488,6 +492,13 @@
       "coupons": "Coupons",
       "currencies": "Currencies",
       "payouts": "Payouts",
+      "disputes": "Disputes",
+      "analytics": "Analytics",
+      "flashSales": "Flash Sales",
+      "giftCards": "Gift Cards",
+      "bundles": "Bundles",
+      "taxRules": "Tax Rules",
+      "tickets": "Tickets",
       "auditLog": "Audit Log"
     }
   }

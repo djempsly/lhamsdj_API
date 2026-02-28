@@ -67,6 +67,25 @@ export const verifyEmail = async (req: Request, res: Response) => {
   }
 };
 
+export const verifyByCode = async (req: Request, res: Response) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ success: false, message: t(req.locale, 'auth.invalidRequest') });
+    }
+    const result = await AuthService.verifyByCode(email, code);
+    if (result.alreadyVerified) {
+      return res.json({ success: true, message: t(req.locale, 'auth.alreadyVerified') });
+    }
+    res.json({ success: true, message: t(req.locale, 'auth.emailVerified') });
+  } catch (error: any) {
+    let msg = t(req.locale, 'auth.invalidCode');
+    if (error.message === 'CODE_EXPIRED') msg = t(req.locale, 'auth.codeExpired');
+    if (error.message === 'USER_NOT_FOUND') msg = t(req.locale, 'auth.userNotFound');
+    res.status(400).json({ success: false, message: msg });
+  }
+};
+
 export const login = async (req: Request, res: Response) => {
   try {
     const validatedData = loginSchema.parse(req.body);

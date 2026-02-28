@@ -1,3 +1,5 @@
+import { apiFetch } from "@/lib/apiFetch";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getProductReviews(productId: number) {
@@ -8,19 +10,15 @@ export async function getProductReviews(productId: number) {
 }
 
 export async function createReview(data: { productId: number; rating: number; comment?: string }) {
-  const res = await fetch(`${API_URL}/reviews`, {
+  const res = await apiFetch(`${API_URL}/reviews`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    credentials: "include",
   });
   return await res.json();
 }
 
 export async function deleteReview(id: number) {
-  const res = await fetch(`${API_URL}/reviews/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
+  const res = await apiFetch(`${API_URL}/reviews/${id}`, { method: "DELETE" });
   return await res.json();
 }

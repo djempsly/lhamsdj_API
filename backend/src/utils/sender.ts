@@ -35,7 +35,7 @@ export const sendVerificationCode = async (email: string, code: string, locale?:
   }
 };
 
-export const sendEmailVerification = async (email: string, token: string, locale?: Locale) => {
+export const sendEmailVerification = async (email: string, token: string, code: string, locale?: Locale) => {
   const verifyUrl = `${FRONTEND_URL}/auth/verify?token=${token}`;
   const lang = locale || 'en';
 
@@ -50,17 +50,31 @@ export const sendEmailVerification = async (email: string, token: string, locale
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">LhamsDJ</h1>
           </div>
           <div style="padding: 40px 32px; text-align: center;">
-            <div style="width: 64px; height: 64px; background: #ECFDF5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <div style="width: 64px; height: 64px; background: #ECFDF5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
               <span style="font-size: 32px;">✉️</span>
             </div>
             <h2 style="color: #111827; font-size: 22px; margin: 0 0 12px;">${t(lang, 'email.verifyTitle')}</h2>
-            <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 32px;">
+            <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
               ${t(lang, 'email.verifyDescription')}
             </p>
+
+            <div style="background: #F3F4F6; border-radius: 12px; padding: 24px; margin: 0 0 28px;">
+              <p style="color: #6B7280; font-size: 13px; margin: 0 0 8px; font-weight: 500;">${t(lang, 'email.yourCode')}</p>
+              <div style="font-size: 36px; font-weight: 800; letter-spacing: 12px; color: #111827; font-family: 'Courier New', monospace; padding: 8px 0;">
+                ${code}
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; margin: 0 0 28px;">
+              <div style="flex: 1; height: 1px; background: #E5E7EB;"></div>
+              <span style="padding: 0 16px; color: #9CA3AF; font-size: 13px;">${t(lang, 'email.orClickButton')}</span>
+              <div style="flex: 1; height: 1px; background: #E5E7EB;"></div>
+            </div>
+
             <a href="${verifyUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
               ${t(lang, 'email.verifyButton')}
             </a>
-            <p style="color: #9CA3AF; font-size: 13px; margin-top: 32px;">
+            <p style="color: #9CA3AF; font-size: 13px; margin-top: 24px;">
               ${t(lang, 'email.verifyExpiry')}
             </p>
           </div>

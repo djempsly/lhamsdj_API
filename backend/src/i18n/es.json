@@ -90,6 +90,10 @@
 
   "upload.noFile": "No se subió ningún archivo",
   "upload.success": "Imagen subida correctamente",
+  "upload.tooLarge": "Archivo demasiado grande. Máximo 5 MB.",
+  "upload.tooMany": "Demasiados archivos. Máximo 10.",
+  "upload.unexpectedField": "Campo de archivo inesperado.",
+  "upload.error": "Error de subida",
 
   "product.categoryNotFound": "La categoría especificada no existe",
 
@@ -140,9 +144,11 @@
 
   "email.verifySubject": "Verifica tu correo - LhamsDJ",
   "email.verifyTitle": "Verifica tu correo",
-  "email.verifyDescription": "Haz clic en el botón de abajo para verificar tu correo y activar tu cuenta.",
+  "email.verifyDescription": "Usa el código de abajo o haz clic en el botón para verificar tu correo y activar tu cuenta.",
+  "email.yourCode": "Tu código de verificación",
+  "email.orClickButton": "o haz clic en el botón",
   "email.verifyButton": "Verificar mi correo",
-  "email.verifyExpiry": "Este enlace expira en 24 horas.",
+  "email.verifyExpiry": "Este código y enlace expiran en 24 horas.",
 
   "email.recoverySubject": "Código de recuperación - LhamsDJ",
   "email.recoveryTitle": "Recuperación de contraseña",

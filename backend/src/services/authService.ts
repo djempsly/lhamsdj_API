@@ -25,13 +25,21 @@ export const AuthService = {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = await bcrypt.hash(verifyCode, 10);
+    const verifyCodeExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const newUser = await prisma.user.create({
-      data: { name, email, password: hashedPassword, phone: phone ?? null, role: 'USER', isActive: true, isVerified: false },
+      data: {
+        name, email, password: hashedPassword, phone: phone ?? null,
+        role: 'USER', isActive: true, isVerified: false,
+        verifyCode: hashedCode, verifyCodeExpiry,
+      },
       select: { id: true, name: true, email: true, role: true, isVerified: true },
     });
 
     const verificationToken = generateEmailVerificationToken(email);
-    await sendEmailVerification(email, verificationToken, locale);
+    await sendEmailVerification(email, verificationToken, verifyCode, locale);
 
     return { user: newUser };
   },
@@ -45,7 +53,25 @@ export const AuthService = {
 
     await prisma.user.update({
       where: { email },
-      data: { isVerified: true },
+      data: { isVerified: true, verifyCode: null, verifyCodeExpiry: null },
+    });
+
+    return { alreadyVerified: false };
+  },
+
+  async verifyByCode(email: string, code: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error('USER_NOT_FOUND');
+    if (user.isVerified) return { alreadyVerified: true };
+    if (!user.verifyCode || !user.verifyCodeExpiry) throw new Error('NO_PENDING_VERIFICATION');
+    if (new Date() > user.verifyCodeExpiry) throw new Error('CODE_EXPIRED');
+
+    const valid = await bcrypt.compare(code, user.verifyCode);
+    if (!valid) throw new Error('INVALID_CODE');
+
+    await prisma.user.update({
+      where: { email },
+      data: { isVerified: true, verifyCode: null, verifyCodeExpiry: null },
     });
 
     return { alreadyVerified: false };

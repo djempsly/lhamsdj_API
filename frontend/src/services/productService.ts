@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/apiFetch";
 import { Product } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -73,29 +74,38 @@ export async function getProductById(id: number) {
 }
 
 export async function createProduct(data: any) {
-  const res = await fetch(`${API_URL}/products`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-    credentials: "include",
-  });
-  return await res.json();
+  try {
+    const res = await apiFetch(`${API_URL}/products`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Connection error" };
+  }
 }
 
 export async function updateProduct(id: number, data: any) {
-  const res = await fetch(`${API_URL}/products/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-    credentials: "include",
-  });
-  return await res.json();
+  try {
+    const res = await apiFetch(`${API_URL}/products/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Connection error" };
+  }
 }
 
 export async function deleteProduct(id: number) {
-  const res = await fetch(`${API_URL}/products/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-  return await res.json();
+  try {
+    const res = await apiFetch(`${API_URL}/products/${id}`, {
+      method: "DELETE",
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Connection error" };
+  }
 }

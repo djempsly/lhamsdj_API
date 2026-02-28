@@ -1,19 +1,17 @@
+import { apiFetch } from "@/lib/apiFetch";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getAddresses() {
-  const res = await fetch(`${API_URL}/addresses`, {
-    credentials: "include",
-    cache: "no-store",
-  });
+  const res = await apiFetch(`${API_URL}/addresses`, { cache: "no-store" });
   return await res.json();
 }
 
 export async function createAddress(data: any) {
-  const res = await fetch(`${API_URL}/addresses`, {
+  const res = await apiFetch(`${API_URL}/addresses`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    credentials: "include",
   });
   return await res.json();
 }

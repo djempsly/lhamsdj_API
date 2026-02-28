@@ -97,6 +97,8 @@ model User {
   isActive      Boolean   @default(true)
   isVerified    Boolean   @default(false)
 
+  verifyCode       String?
+  verifyCodeExpiry DateTime?
   resetToken       String?
   resetTokenExpiry DateTime?
   loginAttempts    Int       @default(0)
