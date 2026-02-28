@@ -8,12 +8,13 @@ const AUTH_ROUTES = ['/auth/login', '/auth/register'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;
+  const hasSession = !!accessToken;
 
   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
   const isAdmin = ADMIN_ROUTES.some((route) => pathname.startsWith(route));
   const isAuthPage = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
-  if ((isProtected || isAdmin) && !accessToken) {
+  if ((isProtected || isAdmin) && !hasSession) {
     const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);

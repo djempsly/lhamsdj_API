@@ -1,5 +1,9 @@
 import { prisma } from '../lib/prisma';
 import { getAdapter } from '../dropshipping/adapterRegistry';
+
+function resolveAdapterKey(supplier: { id: number; apiType: string }): string {
+  return supplier.apiType === 'CUSTOM_API' ? `CUSTOM_${supplier.id}` : supplier.apiType;
+}
 import { NotificationService } from './notificationService';
 import { ShipmentService } from './shipmentService';
 import { sendEmail } from '../utils/mailer';
@@ -42,7 +46,7 @@ export const DropshipService = {
       });
       if (existing) continue;
 
-      const adapter = getAdapter(supplierLink.supplier.apiType);
+      const adapter = getAdapter(resolveAdapterKey(supplierLink.supplier));
 
       try {
         const result = await adapter.placeOrder({
@@ -120,7 +124,7 @@ export const DropshipService = {
       const supplierLink = item.product.supplierProducts[0];
       if (!supplierLink) continue;
 
-      const adapter = getAdapter(so.supplier.apiType);
+      const adapter = getAdapter(resolveAdapterKey(so.supplier));
 
       try {
         const result = await adapter.placeOrder({
@@ -183,7 +187,7 @@ export const DropshipService = {
     let updated = 0;
     for (const so of pendingOrders) {
       if (!so.externalOrderId) continue;
-      const adapter = getAdapter(so.supplier.apiType);
+      const adapter = getAdapter(resolveAdapterKey(so.supplier));
 
       try {
         const result = await adapter.getOrderStatus(so.externalOrderId);

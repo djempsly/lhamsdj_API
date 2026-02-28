@@ -5,6 +5,7 @@ import { createCJDropshippingAdapter } from './cjDropshippingAdapter';
 import { createPrintfulAdapter } from './printfulAdapter';
 import { createHyperSKUAdapter } from './hyperskuAdapter';
 import { createSpocketAdapter } from './spocketAdapter';
+import { createCustomApiAdapter, CustomApiConfig } from './customApiAdapter';
 import logger from '../lib/logger';
 
 const adapters = new Map<string, SupplierAdapter>();
@@ -27,7 +28,7 @@ const KNOWN_ADAPTERS: Record<string, (config: { apiKey: string; baseUrl?: string
   SPOCKET: (c) => createSpocketAdapter({ apiKey: c.apiKey }),
 };
 
-export function registerFromConfig(apiType: string, baseUrl: string, apiKey: string) {
+export function registerFromConfig(apiType: string, baseUrl: string, apiKey: string, apiConfig?: any) {
   if (apiType === 'MANUAL' || !apiKey) return;
 
   const key = apiType.toUpperCase();
@@ -35,9 +36,22 @@ export function registerFromConfig(apiType: string, baseUrl: string, apiKey: str
 
   if (factory) {
     registerAdapter(key, factory({ apiKey, baseUrl }));
+  } else if (key === 'CUSTOM_API' && baseUrl && apiConfig) {
+    registerAdapter(`CUSTOM_${Date.now()}`, createCustomApiAdapter(
+      apiConfig.adapterName || 'Custom',
+      baseUrl,
+      apiKey,
+      apiConfig as CustomApiConfig,
+    ));
   } else if (baseUrl) {
     registerAdapter(key, createGenericApiAdapter({ name: apiType, baseUrl, apiKey }));
   }
+}
+
+export function registerCustomAdapter(supplierId: number, name: string, baseUrl: string, apiKey: string, apiConfig: CustomApiConfig) {
+  const adapterKey = `CUSTOM_${supplierId}`;
+  registerAdapter(adapterKey, createCustomApiAdapter(name, baseUrl, apiKey, apiConfig));
+  return adapterKey;
 }
 
 export function listAdapters(): string[] {
@@ -45,10 +59,11 @@ export function listAdapters(): string[] {
 }
 
 export const SUPPORTED_ADAPTER_TYPES = [
-  { value: 'MANUAL', label: 'Manual (no API)', requiresUrl: false },
-  { value: 'CJ_DROPSHIPPING', label: 'CJ Dropshipping', requiresUrl: false },
-  { value: 'PRINTFUL', label: 'Printful', requiresUrl: false },
-  { value: 'HYPERSKU', label: 'HyperSKU', requiresUrl: false },
-  { value: 'SPOCKET', label: 'Spocket', requiresUrl: false },
-  { value: 'GENERIC_API', label: 'Custom REST API (any provider)', requiresUrl: true },
+  { value: 'MANUAL', label: 'Manual (no API)', requiresUrl: false, requiresConfig: false },
+  { value: 'CJ_DROPSHIPPING', label: 'CJ Dropshipping', requiresUrl: false, requiresConfig: false },
+  { value: 'PRINTFUL', label: 'Printful', requiresUrl: false, requiresConfig: false },
+  { value: 'HYPERSKU', label: 'HyperSKU', requiresUrl: false, requiresConfig: false },
+  { value: 'SPOCKET', label: 'Spocket', requiresUrl: false, requiresConfig: false },
+  { value: 'GENERIC_API', label: 'Generic REST API (standard endpoints)', requiresUrl: true, requiresConfig: false },
+  { value: 'CUSTOM_API', label: 'Custom API (configure endpoints & mapping)', requiresUrl: true, requiresConfig: true },
 ] as const;

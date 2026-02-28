@@ -535,6 +535,7 @@ model Supplier {
   apiType        String         @default("MANUAL")
   apiBaseUrl     String?
   apiKey         String?
+  apiConfig      Json?
   webhookSecret  String?
   contactEmail   String?
   country        String

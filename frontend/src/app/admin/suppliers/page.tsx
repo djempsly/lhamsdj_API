@@ -29,12 +29,32 @@ interface AdapterType {
   value: string;
   label: string;
   requiresUrl: boolean;
+  requiresConfig?: boolean;
 }
+
+const EMPTY_CONFIG = {
+  authType: "bearer" as const,
+  authHeaderName: "",
+  authPrefix: "Bearer",
+  authQueryParam: "",
+  customHeaders: "",
+  endpoints: {
+    getProduct: { method: "GET", path: "/products/{sku}", bodyTemplate: "" },
+    placeOrder: { method: "POST", path: "/orders", bodyTemplate: "" },
+    getOrderStatus: { method: "GET", path: "/orders/{orderId}" },
+  },
+  responseMapping: {
+    product: { sku: "data.sku", name: "data.name", price: "data.price", stock: "data.stock", image: "data.image" },
+    order: { orderId: "data.order_id", status: "data.status", tracking: "data.tracking_number" },
+    orderStatus: { status: "data.status", tracking: "data.tracking_number" },
+  },
+};
 
 const EMPTY_FORM = {
   name: "", apiType: "MANUAL", apiBaseUrl: "", apiKey: "",
   webhookSecret: "", contactEmail: "", country: "",
   currency: "USD", leadTimeDays: 7, notes: "", status: "ACTIVE",
+  apiConfig: EMPTY_CONFIG,
 };
 
 export default function AdminSuppliersPage() {
@@ -77,6 +97,7 @@ export default function AdminSuppliersPage() {
       contactEmail: s.contactEmail || "", country: s.country,
       currency: s.currency, leadTimeDays: s.leadTimeDays,
       notes: s.notes || "", status: s.status,
+      apiConfig: (s as any).apiConfig || EMPTY_CONFIG,
     });
     setError("");
     setShowModal(true);
@@ -87,24 +108,60 @@ export default function AdminSuppliersPage() {
     setSaving(true);
     setError("");
 
-    const body: Record<string, unknown> = {
-      name: form.name, apiType: form.apiType, country: form.country,
-      currency: form.currency, leadTimeDays: form.leadTimeDays,
-      notes: form.notes || undefined, status: form.status,
-      contactEmail: form.contactEmail || undefined,
-    };
-    if (form.apiBaseUrl) body.apiBaseUrl = form.apiBaseUrl;
-    if (form.apiKey) body.apiKey = form.apiKey;
-    if (form.webhookSecret) body.webhookSecret = form.webhookSecret;
+    try {
+      const body: Record<string, unknown> = {
+        name: form.name, apiType: form.apiType, country: form.country,
+        currency: form.currency, leadTimeDays: form.leadTimeDays,
+        notes: form.notes || undefined, status: form.status,
+        contactEmail: form.contactEmail || undefined,
+      };
+      if (form.apiBaseUrl) body.apiBaseUrl = form.apiBaseUrl;
+      if (form.apiKey) body.apiKey = form.apiKey;
+      if (form.webhookSecret) body.webhookSecret = form.webhookSecret;
 
-    const res = editing ? await updateSupplier(editing.id, body) : await createSupplier(body);
-    setSaving(false);
+      if (form.apiType === "CUSTOM_API") {
+        const cfg = form.apiConfig;
+        let customHeaders: Record<string, string> | undefined;
+        if (cfg.customHeaders && typeof cfg.customHeaders === "string" && cfg.customHeaders.trim()) {
+          try { customHeaders = JSON.parse(cfg.customHeaders); } catch { setError("Custom headers must be valid JSON"); setSaving(false); return; }
+        }
+        let getProductBody: Record<string, unknown> | undefined;
+        if (cfg.endpoints.getProduct.bodyTemplate && typeof cfg.endpoints.getProduct.bodyTemplate === "string" && cfg.endpoints.getProduct.bodyTemplate.trim()) {
+          try { getProductBody = JSON.parse(cfg.endpoints.getProduct.bodyTemplate); } catch { setError("Get Product body template must be valid JSON"); setSaving(false); return; }
+        }
+        let placeOrderBody: Record<string, unknown> | undefined;
+        if (cfg.endpoints.placeOrder.bodyTemplate && typeof cfg.endpoints.placeOrder.bodyTemplate === "string" && cfg.endpoints.placeOrder.bodyTemplate.trim()) {
+          try { placeOrderBody = JSON.parse(cfg.endpoints.placeOrder.bodyTemplate); } catch { setError("Place Order body template must be valid JSON"); setSaving(false); return; }
+        }
 
-    if (res.success) {
-      setShowModal(false);
-      load();
-    } else {
-      setError(res.message || "Error");
+        body.apiConfig = {
+          adapterName: form.name,
+          authType: cfg.authType,
+          authHeaderName: cfg.authHeaderName || undefined,
+          authPrefix: cfg.authPrefix || undefined,
+          authQueryParam: cfg.authQueryParam || undefined,
+          customHeaders: customHeaders || undefined,
+          endpoints: {
+            getProduct: { method: cfg.endpoints.getProduct.method, path: cfg.endpoints.getProduct.path, bodyTemplate: getProductBody },
+            placeOrder: { method: cfg.endpoints.placeOrder.method, path: cfg.endpoints.placeOrder.path, bodyTemplate: placeOrderBody },
+            getOrderStatus: { method: cfg.endpoints.getOrderStatus.method, path: cfg.endpoints.getOrderStatus.path },
+          },
+          responseMapping: cfg.responseMapping,
+        };
+      }
+
+      const res = editing ? await updateSupplier(editing.id, body) : await createSupplier(body);
+
+      if (res.success) {
+        setShowModal(false);
+        load();
+      } else {
+        setError(res.message || "Error");
+      }
+    } catch {
+      setError("Connection error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -221,7 +278,7 @@ export default function AdminSuppliersPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-blue-800 text-sm">{t("apiConfig")}</h3>
 
-                  {selectedAdapter?.requiresUrl && (
+                  {(selectedAdapter?.requiresUrl || form.apiType === "CUSTOM_API") && (
                     <div>
                       <label className="block text-sm text-blue-700 mb-1">API Base URL</label>
                       <input value={form.apiBaseUrl} onChange={e => setForm({...form, apiBaseUrl: e.target.value})}
@@ -250,6 +307,158 @@ export default function AdminSuppliersPage() {
                       </p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {form.apiType === "CUSTOM_API" && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
+                  <h3 className="font-semibold text-purple-800 text-sm">Custom API Configuration</h3>
+
+                  {/* Auth */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-purple-700 mb-1">Auth Type</label>
+                      <select value={form.apiConfig.authType} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, authType: e.target.value}})}
+                        className="w-full px-2 py-1.5 border border-purple-200 rounded text-sm bg-white outline-none">
+                        <option value="bearer">Bearer Token</option>
+                        <option value="header">Custom Header</option>
+                        <option value="query">Query Param</option>
+                      </select>
+                    </div>
+                    {form.apiConfig.authType === "header" && (
+                      <div>
+                        <label className="block text-xs font-medium text-purple-700 mb-1">Header Name</label>
+                        <input value={form.apiConfig.authHeaderName} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, authHeaderName: e.target.value}})}
+                          className="w-full px-2 py-1.5 border border-purple-200 rounded text-sm outline-none" placeholder="X-Api-Key" />
+                      </div>
+                    )}
+                    {form.apiConfig.authType === "bearer" && (
+                      <div>
+                        <label className="block text-xs font-medium text-purple-700 mb-1">Prefix</label>
+                        <input value={form.apiConfig.authPrefix} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, authPrefix: e.target.value}})}
+                          className="w-full px-2 py-1.5 border border-purple-200 rounded text-sm outline-none" placeholder="Bearer" />
+                      </div>
+                    )}
+                    {form.apiConfig.authType === "query" && (
+                      <div>
+                        <label className="block text-xs font-medium text-purple-700 mb-1">Query Param</label>
+                        <input value={form.apiConfig.authQueryParam} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, authQueryParam: e.target.value}})}
+                          className="w-full px-2 py-1.5 border border-purple-200 rounded text-sm outline-none" placeholder="api_key" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-purple-700 mb-1">Custom Headers (JSON, optional)</label>
+                    <input value={form.apiConfig.customHeaders} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, customHeaders: e.target.value}})}
+                      className="w-full px-2 py-1.5 border border-purple-200 rounded text-sm outline-none font-mono" placeholder='{"X-Custom": "value"}' />
+                  </div>
+
+                  {/* Endpoints */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-purple-900 uppercase tracking-wide">Endpoints</h4>
+
+                    <div className="bg-white rounded p-3 border border-purple-100">
+                      <p className="text-xs font-semibold text-purple-800 mb-2">Get Product</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        <select value={form.apiConfig.endpoints.getProduct.method}
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, getProduct: {...form.apiConfig.endpoints.getProduct, method: e.target.value}}}})}
+                          className="px-2 py-1 border rounded text-xs bg-white">
+                          <option>GET</option><option>POST</option>
+                        </select>
+                        <input value={form.apiConfig.endpoints.getProduct.path} className="col-span-3 px-2 py-1 border rounded text-xs font-mono"
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, getProduct: {...form.apiConfig.endpoints.getProduct, path: e.target.value}}}})}
+                          placeholder="/products/{sku}" />
+                      </div>
+                      {form.apiConfig.endpoints.getProduct.method === "POST" && (
+                        <input value={form.apiConfig.endpoints.getProduct.bodyTemplate} className="w-full mt-2 px-2 py-1 border rounded text-xs font-mono"
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, getProduct: {...form.apiConfig.endpoints.getProduct, bodyTemplate: e.target.value}}}})}
+                          placeholder='{"product_id": "{sku}"}' />
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded p-3 border border-purple-100">
+                      <p className="text-xs font-semibold text-purple-800 mb-2">Place Order</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        <select value={form.apiConfig.endpoints.placeOrder.method}
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, placeOrder: {...form.apiConfig.endpoints.placeOrder, method: e.target.value}}}})}
+                          className="px-2 py-1 border rounded text-xs bg-white">
+                          <option>POST</option><option>PUT</option>
+                        </select>
+                        <input value={form.apiConfig.endpoints.placeOrder.path} className="col-span-3 px-2 py-1 border rounded text-xs font-mono"
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, placeOrder: {...form.apiConfig.endpoints.placeOrder, path: e.target.value}}}})}
+                          placeholder="/orders" />
+                      </div>
+                      <input value={form.apiConfig.endpoints.placeOrder.bodyTemplate} className="w-full mt-2 px-2 py-1 border rounded text-xs font-mono"
+                        onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, placeOrder: {...form.apiConfig.endpoints.placeOrder, bodyTemplate: e.target.value}}}})}
+                        placeholder='{"items": [{"sku": "{sku}", "qty": "{quantity}"}], "address": {"name": "{name}"}}' />
+                    </div>
+
+                    <div className="bg-white rounded p-3 border border-purple-100">
+                      <p className="text-xs font-semibold text-purple-800 mb-2">Get Order Status</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        <select value={form.apiConfig.endpoints.getOrderStatus.method}
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, getOrderStatus: {...form.apiConfig.endpoints.getOrderStatus, method: e.target.value}}}})}
+                          className="px-2 py-1 border rounded text-xs bg-white">
+                          <option>GET</option><option>POST</option>
+                        </select>
+                        <input value={form.apiConfig.endpoints.getOrderStatus.path} className="col-span-3 px-2 py-1 border rounded text-xs font-mono"
+                          onChange={e => setForm({...form, apiConfig: {...form.apiConfig, endpoints: {...form.apiConfig.endpoints, getOrderStatus: {...form.apiConfig.endpoints.getOrderStatus, path: e.target.value}}}})}
+                          placeholder="/orders/{orderId}" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Response Mapping */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-purple-900 uppercase tracking-wide">Response Field Mapping (JSON paths)</h4>
+
+                    <div className="bg-white rounded p-3 border border-purple-100">
+                      <p className="text-xs font-semibold text-purple-800 mb-2">Product Fields</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {(["sku", "name", "price", "stock", "image"] as const).map(f => (
+                          <div key={f}>
+                            <label className="text-[10px] text-purple-600 uppercase">{f}</label>
+                            <input value={(form.apiConfig.responseMapping.product as any)[f] || ""}
+                              onChange={e => setForm({...form, apiConfig: {...form.apiConfig, responseMapping: {...form.apiConfig.responseMapping, product: {...form.apiConfig.responseMapping.product, [f]: e.target.value}}}})}
+                              className="w-full px-2 py-1 border rounded text-xs font-mono" placeholder={`data.${f}`} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded p-3 border border-purple-100">
+                      <p className="text-xs font-semibold text-purple-800 mb-2">Order Response Fields</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(["orderId", "status", "tracking"] as const).map(f => (
+                          <div key={f}>
+                            <label className="text-[10px] text-purple-600 uppercase">{f}</label>
+                            <input value={(form.apiConfig.responseMapping.order as any)[f] || ""}
+                              onChange={e => setForm({...form, apiConfig: {...form.apiConfig, responseMapping: {...form.apiConfig.responseMapping, order: {...form.apiConfig.responseMapping.order, [f]: e.target.value}}}})}
+                              className="w-full px-2 py-1 border rounded text-xs font-mono" placeholder={`data.${f}`} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded p-3 border border-purple-100">
+                      <p className="text-xs font-semibold text-purple-800 mb-2">Order Status Fields</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {(["status", "tracking"] as const).map(f => (
+                          <div key={f}>
+                            <label className="text-[10px] text-purple-600 uppercase">{f}</label>
+                            <input value={(form.apiConfig.responseMapping.orderStatus as any)[f] || ""}
+                              onChange={e => setForm({...form, apiConfig: {...form.apiConfig, responseMapping: {...form.apiConfig.responseMapping, orderStatus: {...form.apiConfig.responseMapping.orderStatus, [f]: e.target.value}}}})}
+                              className="w-full px-2 py-1 border rounded text-xs font-mono" placeholder={`data.${f}`} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-purple-600">
+                    Use <code className="bg-purple-100 px-1 rounded">{"{sku}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{quantity}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{name}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{street}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{city}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{country}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{postalCode}"}</code>, <code className="bg-purple-100 px-1 rounded">{"{orderId}"}</code> as placeholders. Response mapping uses dot notation: <code className="bg-purple-100 px-1 rounded">data.result.id</code>
+                  </p>
                 </div>
               )}
 

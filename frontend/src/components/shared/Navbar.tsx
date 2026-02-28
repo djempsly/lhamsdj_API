@@ -25,13 +25,20 @@ export default function Navbar() {
     });
   }, []);
 
-  useEffect(() => {
+  const fetchCartCount = () => {
     getCart().then((res) => {
       if (res?.success && res.data?.items) {
         const count = res.data.items.reduce((acc: number, item: { quantity: number }) => acc + item.quantity, 0);
         setCartCount(count);
       } else setCartCount(0);
     });
+  };
+
+  useEffect(() => { fetchCartCount(); }, []);
+
+  useEffect(() => {
+    window.addEventListener("cart-change", fetchCartCount);
+    return () => window.removeEventListener("cart-change", fetchCartCount);
   }, []);
 
   const handleLogout = async () => {
@@ -60,14 +67,18 @@ export default function Navbar() {
             <Link href="/wishlist" className="p-2 text-gray-600 hover:text-gray-900 relative" title={t("wishlist")}>
               <Heart size={20} />
             </Link>
-            <Link href="/cart" className="p-2 text-gray-600 hover:text-gray-900 relative" title={t("cart")}>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("cart-drawer-open", { detail: { mode: "full" } }))}
+              className="p-2 text-gray-600 hover:text-gray-900 relative"
+              title={t("cart")}
+            >
               <ShoppingCart size={20} />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
-            </Link>
+            </button>
             <LanguageSwitcher />
             <NotificationBell />
 

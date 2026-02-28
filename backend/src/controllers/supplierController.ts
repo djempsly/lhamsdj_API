@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { SupplierService } from '../services/supplierService';
 import { DropshipService } from '../services/dropshipService';
-import { SUPPORTED_ADAPTER_TYPES, registerFromConfig } from '../dropshipping/adapterRegistry';
+import { SUPPORTED_ADAPTER_TYPES, registerFromConfig, registerCustomAdapter } from '../dropshipping/adapterRegistry';
 import { parsePagination } from '../utils/pagination';
 import { z } from 'zod';
 
@@ -10,6 +10,7 @@ const createSchema = z.object({
   apiType: z.string().max(50).optional(),
   apiBaseUrl: z.string().url().optional().or(z.literal('')).transform(v => v || undefined),
   apiKey: z.string().max(500).optional(),
+  apiConfig: z.any().optional(),
   webhookSecret: z.string().max(500).optional(),
   contactEmail: z.string().email().optional().or(z.literal('')).transform(v => v || undefined),
   country: z.string().min(2).max(100),
@@ -43,10 +44,12 @@ export const getAdapterTypes = async (_req: Request, res: Response) => {
 
 export const createSupplier = async (req: Request, res: Response) => {
   try {
-    const data = createSchema.parse(req.body);
-    const supplier = await SupplierService.create(data);
+    const parsed = createSchema.parse(req.body);
+    const supplier = await SupplierService.create(parsed as any);
 
-    if (supplier.apiType !== 'MANUAL' && supplier.apiKey) {
+    if (supplier.apiType === 'CUSTOM_API' && supplier.apiBaseUrl && supplier.apiKey && (supplier as any).apiConfig) {
+      registerCustomAdapter(supplier.id, supplier.name, supplier.apiBaseUrl, supplier.apiKey, (supplier as any).apiConfig);
+    } else if (supplier.apiType !== 'MANUAL' && supplier.apiKey) {
       registerFromConfig(supplier.apiType, supplier.apiBaseUrl || '', supplier.apiKey);
     }
 
@@ -80,7 +83,9 @@ export const updateSupplier = async (req: Request, res: Response) => {
   try {
     const supplier = await SupplierService.update(Number(req.params.id), req.body);
 
-    if (supplier.apiType !== 'MANUAL' && supplier.apiKey) {
+    if (supplier.apiType === 'CUSTOM_API' && supplier.apiBaseUrl && supplier.apiKey && (supplier as any).apiConfig) {
+      registerCustomAdapter(supplier.id, supplier.name, supplier.apiBaseUrl, supplier.apiKey, (supplier as any).apiConfig);
+    } else if (supplier.apiType !== 'MANUAL' && supplier.apiKey) {
       registerFromConfig(supplier.apiType, supplier.apiBaseUrl || '', supplier.apiKey);
     }
 
@@ -142,10 +147,13 @@ export const testConnection = async (req: Request, res: Response) => {
   try {
     const supplier = await SupplierService.getById(Number(req.params.id));
     if (!supplier) return res.status(404).json({ success: false, message: 'Supplier not found' });
-    if (!supplier.apiBaseUrl) return res.status(400).json({ success: false, message: 'No API URL configured' });
+    if (!supplier.apiBaseUrl && supplier.apiType !== 'CJ_DROPSHIPPING' && supplier.apiType !== 'PRINTFUL' && supplier.apiType !== 'HYPERSKU' && supplier.apiType !== 'SPOCKET') {
+      return res.status(400).json({ success: false, message: 'No API URL configured' });
+    }
 
     const { getAdapter } = await import('../dropshipping/adapterRegistry');
-    const adapter = getAdapter(supplier.apiType);
+    const adapterKey = supplier.apiType === 'CUSTOM_API' ? `CUSTOM_${supplier.id}` : supplier.apiType;
+    const adapter = getAdapter(adapterKey);
 
     const start = Date.now();
     const product = await adapter.getProduct('test');

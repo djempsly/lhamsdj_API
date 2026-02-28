@@ -165,7 +165,13 @@
     "removeProduct": "Remove this product?",
     "loadingCart": "Loading cart...",
     "size": "Size",
-    "color": "Color"
+    "color": "Color",
+    "itemAdded": "Added to cart",
+    "viewCart": "View Cart",
+    "continueShopping": "Continue Shopping",
+    "close": "Close",
+    "quantity": "Qty",
+    "items": "items"
   },
   "checkout": {
     "title": "Complete Purchase",
@@ -254,6 +260,9 @@
     "securePayment": "Secure Payment",
     "loadingGateway": "Loading payment gateway...",
     "paymentError": "Error starting payment",
+    "stripeNotConfigured": "The payment gateway is not configured yet. Please contact the administrator.",
+    "retryPayment": "Retry",
+    "backToCart": "Back to Cart",
     "success": "Payment Successful!",
     "thankYou": "Thank you for your purchase",
     "orderConfirmed": "Your order has been confirmed",

@@ -25,21 +25,38 @@ async function refreshOnce(): Promise<boolean> {
   return refreshPromise;
 }
 
+const EMPTY_RESPONSE = () =>
+  new Response(JSON.stringify({ success: false, message: "Connection error" }), {
+    status: 0,
+    headers: { "Content-Type": "application/json" },
+  });
+
 /**
  * Wrapper around fetch that auto-refreshes the access token on 401
  * and retries the original request once.
+ * Returns a synthetic error response on network failure instead of throwing.
  */
 export async function apiFetch(
   input: string,
   init?: RequestInit,
 ): Promise<Response> {
   const opts: RequestInit = { ...init, credentials: "include" };
-  let res = await fetch(input, opts);
+
+  let res: Response;
+  try {
+    res = await fetch(input, opts);
+  } catch {
+    return EMPTY_RESPONSE();
+  }
 
   if (res.status === 401) {
     const refreshed = await refreshOnce();
     if (refreshed) {
-      res = await fetch(input, opts);
+      try {
+        res = await fetch(input, opts);
+      } catch {
+        return EMPTY_RESPONSE();
+      }
     }
   }
 

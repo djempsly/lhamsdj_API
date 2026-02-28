@@ -8,7 +8,7 @@ const generateSlug = (text: string) => {
 };
 
 export const SupplierService = {
-  async create(data: { name: string; apiType?: string | undefined; apiBaseUrl?: string | undefined; apiKey?: string | undefined; webhookSecret?: string | undefined; contactEmail?: string | undefined; country: string; currency?: string | undefined; leadTimeDays?: number | undefined; notes?: string | undefined }) {
+  async create(data: { name: string; apiType?: string; apiBaseUrl?: string; apiKey?: string; apiConfig?: any; webhookSecret?: string; contactEmail?: string; country: string; currency?: string; leadTimeDays?: number; notes?: string }) {
     const slug = generateSlug(data.name);
     return await prisma.supplier.create({
       data: {
@@ -17,6 +17,7 @@ export const SupplierService = {
         apiType: data.apiType || 'MANUAL',
         apiBaseUrl: data.apiBaseUrl ?? null,
         apiKey: data.apiKey ?? null,
+        apiConfig: data.apiConfig ?? undefined,
         webhookSecret: data.webhookSecret ?? null,
         contactEmail: data.contactEmail ?? null,
         country: data.country,

@@ -26,11 +26,21 @@ export default function WishlistPage() {
     setItems((prev) => prev.filter((i) => i.product.id !== productId));
   }
 
-  async function handleAddToCart(productId: number) {
-    const res = await addToCart(productId, 1);
+  async function handleAddToCart(item: WishlistItem) {
+    const res = await addToCart(item.product.id, 1);
     if (res.success) {
       window.dispatchEvent(new Event("cart-change"));
-      alert(t("addedToCart"));
+      window.dispatchEvent(new CustomEvent("cart-drawer-open", {
+        detail: {
+          mode: "mini",
+          product: {
+            name: item.product.name,
+            price: item.product.price,
+            image: item.product.images?.[0]?.url || "",
+            quantity: 1,
+          },
+        },
+      }));
     }
   }
 
@@ -83,7 +93,7 @@ export default function WishlistPage() {
                 </Link>
                 <p className="text-lg font-bold mt-1">${item.product.price}</p>
                 <button
-                  onClick={() => handleAddToCart(item.product.id)}
+                  onClick={() => handleAddToCart(item)}
                   className="w-full mt-2 flex items-center justify-center gap-1.5 bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition"
                 >
                   <ShoppingCart size={14} />

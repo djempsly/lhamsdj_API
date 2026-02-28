@@ -165,7 +165,13 @@
     "removeProduct": "Supprimer ce produit ?",
     "loadingCart": "Chargement du panier...",
     "size": "Taille",
-    "color": "Couleur"
+    "color": "Couleur",
+    "itemAdded": "Ajouté au panier",
+    "viewCart": "Voir le panier",
+    "continueShopping": "Continuer les achats",
+    "close": "Fermer",
+    "quantity": "Qté",
+    "items": "articles"
   },
   "checkout": {
     "title": "Finaliser l'Achat",
@@ -254,6 +260,9 @@
     "securePayment": "Paiement Sécurisé",
     "loadingGateway": "Chargement de la passerelle de paiement...",
     "paymentError": "Erreur lors du démarrage du paiement",
+    "stripeNotConfigured": "La passerelle de paiement n'est pas encore configurée. Veuillez contacter l'administrateur.",
+    "retryPayment": "Réessayer",
+    "backToCart": "Retour au panier",
     "success": "Paiement Réussi !",
     "thankYou": "Merci pour votre achat",
     "orderConfirmed": "Votre commande a été confirmée",

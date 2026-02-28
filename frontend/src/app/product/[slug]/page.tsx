@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { getProductBySlug } from "@/services/productService";
 import { addToCart } from "@/services/cartService";
 import Image from "next/image";
-import { ShoppingCart, Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle } from "lucide-react";
 import ReviewSection from "@/components/product/ReviewSection";
 
 
@@ -24,13 +24,13 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [variantError, setVariantError] = useState(false);
 
   useEffect(() => {
     if (slug) {
       getProductBySlug(slug as string).then((data) => {
         if (data) {
           setProduct(data);
-          // Poner la primera imagen como principal
           if (data.images.length > 0) setMainImage(data.images[0].url);
         }
         setLoading(false);
@@ -38,76 +38,73 @@ export default function ProductDetailPage() {
     }
   }, [slug]);
 
-  // Manejar el botón de compra
+  const currentPrice = selectedVariant ? selectedVariant.price : product?.price;
+  const currentStock = selectedVariant ? selectedVariant.stock : product?.stock;
+
   const handleAddToCart = async () => {
-    // 1. Validar si requiere variante (si el producto tiene variantes y no elegí ninguna)
     if (product.variants.length > 0 && !selectedVariant) {
-      alert(t("selectOption"));
+      setVariantError(true);
       return;
     }
-
+    setVariantError(false);
     setIsAdding(true);
-    
-    // 2. Llamar al servicio
+
     const res = await addToCart(
-      product.id, 
-      quantity, 
+      product.id,
+      quantity,
       selectedVariant ? selectedVariant.id : undefined
     );
 
     setIsAdding(false);
 
     if (res.success) {
-    window.dispatchEvent(new Event("cart-change"));
-      alert("✅ " + t("addedToCart"));
-      // Aquí podríamos abrir un "Mini Cart" lateral en el futuro
+      window.dispatchEvent(new Event("cart-change"));
+      window.dispatchEvent(new CustomEvent("cart-drawer-open", {
+        detail: {
+          mode: "mini",
+          product: {
+            name: product.name,
+            price: currentPrice,
+            image: mainImage || product.images?.[0]?.url || "",
+            variant: selectedVariant ? `${selectedVariant.size || ""} ${selectedVariant.color || ""}`.trim() : undefined,
+            quantity,
+          },
+        },
+      }));
     } else {
-         // 👇 SOLUCIÓN AQUÍ: Detectar error de autenticación
-      // Si el mensaje dice "token", "autorizado", "permiso", etc.
       if (res.message?.toLowerCase().includes("token") || res.message?.toLowerCase().includes("autenticado")) {
-        // Redirigimos al login
-        alert(t("loginToBuy"))
-        window.location.href = "/auth/login";
+        router.push("/auth/login");
         return;
       }
-      
-      alert("Error: " + res.message);
     }
   };
   const handleBuyNow = async () => {
-
-   
-    // 1. Validaciones iguales al AddToCart
     if (product.variants.length > 0 && !selectedVariant) {
-      return alert(t("selectAnOption"));
+      setVariantError(true);
+      return;
     }
-
+    setVariantError(false);
     setIsAdding(true);
-    
-    // 2. Agregar al carrito
+
     const res = await addToCart(
-      product.id, 
-      quantity, 
+      product.id,
+      quantity,
       selectedVariant ? selectedVariant.id : undefined
     );
 
     if (res.success) {
       window.dispatchEvent(new Event("cart-change"));
-      // 3. REDIRECCIÓN INMEDIATA
-      router.push("/cart"); // O directo a "/checkout" si prefieres
-     // router.push("/checkout"); // O directo a "/checkout" si prefieres
+      router.push("/checkout");
     } else {
-      if (res.message?.includes("autenticado")) router.push("/auth/login");
+      if (res.message?.includes("autenticado") || res.message?.toLowerCase().includes("token")) {
+        router.push("/auth/login");
+      }
     }
     setIsAdding(false);
   };
 
   if (loading) return <div className="p-20 text-center">{t("loadingProduct")}</div>;
   if (!product) return <div className="p-20 text-center">{t("notFound")} 😢</div>;
-
-  // Precio dinámico: Si elegí variante, muestra precio variante, si no precio base
-  const currentPrice = selectedVariant ? selectedVariant.price : product.price;
-  const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -173,6 +170,9 @@ export default function ProductDetailPage() {
                   </button>
                 ))}
               </div>
+              {variantError && (
+                <p className="text-red-500 text-sm mt-2 font-medium">{t("selectOption")}</p>
+              )}
             </div>
           )}
 
@@ -210,9 +210,7 @@ export default function ProductDetailPage() {
               disabled={currentStock === 0 || isAdding}
               className="flex-1 bg-black text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              
-               {/* <ShoppingCart size={16} /> */}
-              {isAdding ? t("adding") : t("addToCart")} 
+              {isAdding ? t("adding") : t("addToCart")}
             </button>
 
 
