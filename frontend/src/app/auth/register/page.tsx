@@ -1,12 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, Component, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { registerUser } from "@/services/authService";
 import Link from "next/link";
-import { Check, X, Mail } from "lucide-react";
-import { Turnstile } from '@marsidev/react-turnstile';
+import dynamic from "next/dynamic";
 import PasswordInput from "@/components/ui/PasswordInput";
+
+const Turnstile = dynamic(
+  () => import("@marsidev/react-turnstile").then((m) => ({ default: m.Turnstile })),
+  { ssr: false, loading: () => <div className="h-[65px] flex items-center justify-center text-gray-400 text-sm">Loading captcha...</div> }
+);
+
+class CaptchaErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div className="text-xs text-amber-600 text-center p-2">CAPTCHA unavailable</div>;
+    }
+    return this.props.children;
+  }
+}
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -86,7 +106,9 @@ export default function RegisterPage() {
       <div className="flex min-h-[80vh] items-center justify-center px-4 bg-gray-50">
         <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-100 text-center">
           <div className="mx-auto w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-            <Mail className="w-10 h-10 text-blue-600" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+              <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-3">{t("accountCreated")}</h2>
@@ -163,7 +185,7 @@ export default function RegisterPage() {
               required
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={validations.match && formData.password ? 'border-green-500 focus:ring-green-500' : ''}
+              className={validations.match && formData.password ? "border-green-500 focus:ring-green-500" : ""}
               autoComplete="new-password"
             />
           </div>
@@ -187,11 +209,15 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex justify-center my-2">
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-              onSuccess={(token) => setCaptchaToken(token)}
-              onExpire={() => setCaptchaToken("")}
-            />
+            <CaptchaErrorBoundary>
+              <Suspense fallback={<div className="h-[65px] flex items-center justify-center text-gray-400 text-sm">Loading captcha...</div>}>
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                  onSuccess={(token: string) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken("")}
+                />
+              </Suspense>
+            </CaptchaErrorBoundary>
           </div>
 
           <button type="submit" disabled={loading || !isFormValid}
@@ -213,9 +239,17 @@ export default function RegisterPage() {
 
 function RequirementItem({ fulfilled, text }: { fulfilled: boolean; text: string }) {
   return (
-    <div className={`flex items-center gap-2 ${fulfilled ? "text-green-600" : "text-gray-400"}`}>
-      {fulfilled ? <Check size={14} /> : <X size={14} />}
-      <span>{text}</span>
+    <div className={`flex items-center gap-2 transition-colors duration-200 ${fulfilled ? "text-green-600" : "text-red-500"}`}>
+      {fulfilled ? (
+        <span className="flex items-center justify-center w-4 h-4 bg-green-100 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+      ) : (
+        <span className="flex items-center justify-center w-4 h-4 bg-red-100 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </span>
+      )}
+      <span className="font-medium">{text}</span>
     </div>
   );
 }

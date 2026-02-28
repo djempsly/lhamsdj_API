@@ -9,7 +9,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   let locale = await requestLocale;
 
   if (!locale || !locales.includes(locale as Locale)) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const saved = cookieStore.get('locale')?.value;
     locale = locales.includes(saved as Locale) ? saved! : defaultLocale;
   }

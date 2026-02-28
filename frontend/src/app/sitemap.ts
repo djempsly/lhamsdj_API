@@ -3,15 +3,15 @@ import type { MetadataRoute } from 'next';
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lhamsdj.com';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-export default async function sitemap(): Promise<MetadataRoute['sitemap']> {
-  const staticRoutes = [
-    { url: `${BASE_URL}`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 1 },
-    { url: `${BASE_URL}/products`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.9 },
-    { url: `${BASE_URL}/auth/login`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.3 },
-    { url: `${BASE_URL}/auth/register`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.3 },
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: `${BASE_URL}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    { url: `${BASE_URL}/products`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${BASE_URL}/auth/login`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${BASE_URL}/auth/register`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ];
 
-  let productRoutes: MetadataRoute['sitemap'] = [];
+  let productRoutes: MetadataRoute.Sitemap = [];
   try {
     const res = await fetch(`${API_URL}/products?limit=1000`, { next: { revalidate: 3600 } });
     const data = await res.json();
@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute['sitemap']> {
     }
   } catch {}
 
-  let categoryRoutes: MetadataRoute['sitemap'] = [];
+  let categoryRoutes: MetadataRoute.Sitemap = [];
   try {
     const res = await fetch(`${API_URL}/categories`, { next: { revalidate: 3600 } });
     const data = await res.json();

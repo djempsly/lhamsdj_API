@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-export default function manifest(): MetadataRoute['manifest'] {
+export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'LhamsDJ Marketplace',
     short_name: 'LhamsDJ',
