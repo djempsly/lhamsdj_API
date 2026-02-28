@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
+import { apiFetch } from "@/lib/apiFetch";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,9 +15,9 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch(`${API_URL}/auth/me`, {
+        const res = await apiFetch(`${API_URL}/auth/me`, {
           method: "GET",
-          credentials: "include",
+          cache: "no-store",
         });
         const data = await res.json();
         if (!data?.success || !data?.user) {

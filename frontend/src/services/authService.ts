@@ -100,10 +100,10 @@ export async function verifyByCode(email: string, code: string) {
 
 export async function checkSession() {
   try {
-    const res = await fetch(`${API_URL}/auth/me`, {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/auth/me`, {
       method: "GET",
       cache: "no-store",
-      credentials: "include",
     });
     return await res.json();
   } catch (error) {

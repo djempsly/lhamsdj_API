@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
-const ACCESS_MAX_AGE = 15 * 60 * 1000;        // 15 minutos
+const ACCESS_MAX_AGE = 60 * 60 * 1000;         // 1 hora
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 días
 
 export function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {

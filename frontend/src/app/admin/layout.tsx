@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import AdminSidebar from "@/components/admin/Sidebar";
+import { apiFetch } from "@/lib/apiFetch";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -12,9 +13,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+        const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           method: "GET",
-          credentials: "include",
+          cache: "no-store",
         });
         const data = await res.json();
         if (!data?.success || data?.user?.role !== "ADMIN") {

@@ -26,21 +26,26 @@ export default function AdminCategories() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName) return;
+    if (!newCatName.trim()) return;
 
     setLoading(true);
-    const body: { name: string; parentId?: number } = { name: newCatName };
-    if (parentId !== "") body.parentId = parentId;
-    const res = await createCategory(body);
-    setLoading(false);
+    try {
+      const body: { name: string; parentId?: number } = { name: newCatName.trim() };
+      if (parentId !== "") body.parentId = parentId;
+      const res = await createCategory(body);
 
-    if (res.success) {
-      setNewCatName("");
-      setParentId("");
-      loadCategories();
-      alert(t("categoryCreated"));
-    } else {
-      alert(tCommon("error") + ": " + res.message);
+      if (res.success) {
+        setNewCatName("");
+        setParentId("");
+        loadCategories();
+        alert(t("categoryCreated"));
+      } else {
+        alert(tCommon("error") + ": " + (res.message || "Unknown error"));
+      }
+    } catch (err) {
+      alert(tCommon("error") + ": Connection error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,15 +69,20 @@ export default function AdminCategories() {
   const handleSave = async () => {
     if (editingId === null || !editName.trim()) return;
     setLoading(true);
-    const res = await updateCategory(editingId, { name: editName.trim() });
-    setLoading(false);
-    if (res.success) {
-      setEditingId(null);
-      setEditName("");
-      loadCategories();
-      alert(t("categoryUpdated"));
-    } else {
-      alert(tCommon("error") + ": " + res.message);
+    try {
+      const res = await updateCategory(editingId, { name: editName.trim() });
+      if (res.success) {
+        setEditingId(null);
+        setEditName("");
+        loadCategories();
+        alert(t("categoryUpdated"));
+      } else {
+        alert(tCommon("error") + ": " + (res.message || "Unknown error"));
+      }
+    } catch {
+      alert(tCommon("error") + ": Connection error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,6 +114,7 @@ export default function AdminCategories() {
             ))}
           </select>
           <button
+            type="submit"
             disabled={loading}
             className="bg-black text-white px-6 py-2 rounded-md font-bold hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
           >

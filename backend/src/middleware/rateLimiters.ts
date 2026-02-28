@@ -3,7 +3,17 @@ import { t } from '../i18n/t';
 
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 20,
+  handler: (req: any, res: any) => {
+    res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyAuth') });
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
   handler: (req: any, res: any) => {
     res.status(429).json({ success: false, message: t(req.locale, 'middleware.tooManyAuth') });
   },
