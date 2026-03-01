@@ -75,37 +75,43 @@ export default function NotificationBell() {
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={handleOpen} className="relative p-2 text-gray-600 hover:text-black transition">
+      <button onClick={handleOpen} className="relative min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition touch-manipulation">
         <Bell size={20} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+          <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b">
-            <h3 className="font-semibold text-sm">{t("title")}</h3>
-            {unread > 0 && (
-              <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline">{t("markAllRead")}</button>
-            )}
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <p className="text-center py-8 text-sm text-gray-400">{t("empty")}</p>
-            ) : (
-              notifications.slice(0, 10).map((n) => (
-                <div key={n.id} className={`px-4 py-3 border-b last:border-0 ${!n.isRead ? "bg-blue-50" : ""}`}>
-                  <p className="text-sm font-medium">{n.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{n.message}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1.5 w-80 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+              <h3 className="font-bold text-sm">{t("title")}</h3>
+              {unread > 0 && (
+                <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline font-medium touch-manipulation">{t("markAllRead")}</button>
+              )}
+            </div>
+            <div className="max-h-80 overflow-y-auto overscroll-contain">
+              {notifications.length === 0 ? (
+                <div className="text-center py-10">
+                  <Bell size={28} className="mx-auto text-gray-200 mb-2" />
+                  <p className="text-sm text-gray-400">{t("empty")}</p>
                 </div>
-              ))
-            )}
+              ) : (
+                notifications.slice(0, 10).map((n) => (
+                  <div key={n.id} className={`px-4 py-3 border-b last:border-0 transition ${!n.isRead ? "bg-blue-50/50" : "hover:bg-gray-50"}`}>
+                    <p className="text-sm font-medium">{n.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -42,14 +42,30 @@
     "myStore": "Ma Boutique",
     "logout": "Déconnexion",
     "login": "Connexion",
-    "register": "S'inscrire"
+    "register": "S'inscrire",
+    "deals": "Offres du jour",
+    "newArrivals": "Nouveautés",
+    "bestSellers": "Meilleures ventes",
+    "help": "Aide & Support",
+    "orders": "Mes Commandes",
+    "sellOnLhams": "Vendre sur LhamsDJ",
+    "freeShipping": "Livraison gratuite dès 50$",
+    "downloadApp": "Télécharger l'appli",
+    "allCategories": "Toutes les catégories",
+    "trending": "Tendances",
+    "account": "Compte",
+    "helloGuest": "Bonjour, connectez-vous",
+    "helloUser": "Bonjour, {name}",
+    "accountAndLists": "Compte & Listes",
+    "returnsOrders": "Retours & Commandes"
   },
   "footer": {
     "rights": "Tous droits réservés."
   },
   "search": {
     "placeholder": "Rechercher produits, marques, catégories...",
-    "viewAll": "Voir tous les résultats",
+    "searchButton": "Rechercher",
+    "viewAll": "Voir tous les résultats pour",
     "noResults": "Aucun résultat trouvé pour"
   },
   "notifications": {

@@ -42,14 +42,30 @@
     "myStore": "My Store",
     "logout": "Log Out",
     "login": "Log In",
-    "register": "Sign Up"
+    "register": "Sign Up",
+    "deals": "Today's Deals",
+    "newArrivals": "New Arrivals",
+    "bestSellers": "Best Sellers",
+    "help": "Help & Support",
+    "orders": "My Orders",
+    "sellOnLhams": "Sell on LhamsDJ",
+    "freeShipping": "Free shipping on orders over $50",
+    "downloadApp": "Download the app",
+    "allCategories": "All Categories",
+    "trending": "Trending",
+    "account": "Account",
+    "helloGuest": "Hello, Sign in",
+    "helloUser": "Hello, {name}",
+    "accountAndLists": "Account & Lists",
+    "returnsOrders": "Returns & Orders"
   },
   "footer": {
     "rights": "All rights reserved."
   },
   "search": {
     "placeholder": "Search products, brands, categories...",
-    "viewAll": "View all results",
+    "searchButton": "Search",
+    "viewAll": "View all results for",
     "noResults": "No results found for"
   },
   "notifications": {

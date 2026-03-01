@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLocale } from "next-intl";
-import { Globe } from "lucide-react";
+import { Globe, Check } from "lucide-react";
 
 const localeConfig = [
   { code: "en", label: "English", flag: "🇺🇸" },
@@ -34,27 +34,32 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition"
+        className="flex items-center gap-1.5 min-h-[36px] px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition touch-manipulation"
+        aria-label="Language"
       >
-        <Globe size={16} />
-        <span className="font-medium">{current?.code.toUpperCase()}</span>
+        <span className="text-base">{current?.flag}</span>
+        <span className="font-medium text-xs">{current?.code.toUpperCase()}</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
-          {localeConfig.map(l => (
-            <button
-              key={l.code}
-              onClick={() => switchTo(l.code)}
-              className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 transition ${
-                l.code === locale ? "bg-gray-50 font-medium text-gray-900" : "text-gray-600"
-              }`}
-            >
-              <span>{l.flag}</span>
-              <span>{l.label}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+            {localeConfig.map(l => (
+              <button
+                key={l.code}
+                onClick={() => switchTo(l.code)}
+                className={`w-full text-left px-3 min-h-[42px] text-sm flex items-center gap-2.5 hover:bg-blue-50 transition touch-manipulation ${
+                  l.code === locale ? "bg-blue-50 font-semibold text-blue-700" : "text-gray-600"
+                }`}
+              >
+                <span className="text-base">{l.flag}</span>
+                <span className="flex-1">{l.label}</span>
+                {l.code === locale && <Check size={14} className="text-blue-600" />}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
