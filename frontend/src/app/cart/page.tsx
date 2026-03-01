@@ -52,17 +52,17 @@ export default function CartPage() {
     return acc + price * item.quantity;
   }, 0) || 0;
 
-  if (loading) return <div className="p-20 text-center">{t("loadingCart")}</div>;
+  if (loading) return <div className="p-10 sm:p-20 text-center">{t("loadingCart")}</div>;
 
   if (!cart || cart.items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="bg-gray-100 p-6 rounded-full mb-4">
-          <ShoppingBag size={48} className="text-gray-400" />
+        <div className="bg-gray-100 p-5 sm:p-6 rounded-full mb-4">
+          <ShoppingBag size={40} className="text-gray-400 sm:w-12 sm:h-12" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">{t("empty")}</h1>
-        <p className="text-gray-500 mb-6">{t("emptyDesc")}</p>
-        <Link href="/" className="bg-black text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 transition">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2">{t("empty")}</h1>
+        <p className="text-gray-500 mb-6 text-sm sm:text-base">{t("emptyDesc")}</p>
+        <Link href="/" className="bg-black text-white px-6 min-h-[48px] flex items-center rounded-lg font-bold hover:bg-gray-800 transition touch-manipulation">
           {t("goShopping")}
         </Link>
       </div>
@@ -70,105 +70,74 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
+    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">{t("title")}</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* LISTA DE ITEMS (Izquierda) */}
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
           {cart.items.map((item: any) => {
-            // Determinar datos a mostrar (Producto base o Variante)
             const price = item.productVariant ? item.productVariant.price : item.product.price;
             const image = item.product.images[0]?.url || "https://via.placeholder.com/150";
-            
             return (
-              <div key={item.id} className="flex gap-4 border p-4 rounded-xl bg-white shadow-sm">
-                {/* Imagen */}
-                <div className="relative w-24 h-24 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                  <Image src={image} alt="Producto" fill className="object-cover" />
+              <div key={item.id} className="flex gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl bg-white shadow-sm">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                  <Image src={image} alt={item.product.name} fill className="object-cover" sizes="96px" />
                 </div>
-
-                {/* Info */}
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-bold text-lg">{item.product.name}</h3>
+                    <h3 className="font-bold text-sm sm:text-lg truncate">{item.product.name}</h3>
                     {item.productVariant && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {item.productVariant.size && `${t("size")}: ${item.productVariant.size} `}
                         {item.productVariant.color && `| ${t("color")}: ${item.productVariant.color}`}
                       </p>
                     )}
-                    <p className="font-semibold text-gray-900 mt-1">${price}</p>
+                    <p className="font-semibold text-gray-900 mt-1 text-sm sm:text-base">${price}</p>
                   </div>
-                </div>
-
-                {/* Controles */}
-                <div className="flex flex-col justify-between items-end">
-                  <button 
-                    onClick={() => handleRemove(item.id)}
-                    className="text-red-500 hover:bg-red-50 p-2 rounded-full transition"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-
-                  <div className="flex items-center border rounded-lg">
-                    <button 
-                      onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                      disabled={updating || item.quantity <= 1}
-                      className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
-                    >
+                  <div className="flex items-center border rounded-lg self-start mt-2">
+                    <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} disabled={updating || item.quantity <= 1}
+                      className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 touch-manipulation">
                       <Minus size={14} />
                     </button>
                     <span className="px-2 text-sm font-bold w-8 text-center">{item.quantity}</span>
-                    <button 
-                      onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                      disabled={updating}
-                      className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
-                    >
+                    <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} disabled={updating}
+                      className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 touch-manipulation">
                       <Plus size={14} />
                     </button>
                   </div>
                 </div>
+                <button onClick={() => handleRemove(item.id)}
+                  className="text-red-500 hover:bg-red-50 w-10 h-10 flex items-center justify-center rounded-full transition self-start shrink-0 touch-manipulation">
+                  <Trash2 size={16} />
+                </button>
               </div>
             );
           })}
         </div>
 
-        {/* RESUMEN DE PAGO (Derecha) */}
         <div className="lg:col-span-1">
-          <div className="bg-gray-50 p-6 rounded-xl border sticky top-24">
-            <h2 className="text-xl font-bold mb-4">{t("orderSummary")}</h2>
-            
+          <div className="bg-gray-50 p-4 sm:p-6 rounded-xl border sticky top-20">
+            <h2 className="text-lg sm:text-xl font-bold mb-4">{t("orderSummary")}</h2>
             <div className="space-y-2 mb-4 border-b pb-4">
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">{t("subtotal")}</span>
                 <span className="font-medium">${total.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">{t("shipping")}</span>
                 <span className="font-medium text-green-600">{t("free")}</span>
               </div>
             </div>
-
-            <div className="flex justify-between text-xl font-bold mb-6">
+            <div className="flex justify-between text-lg sm:text-xl font-bold mb-6">
               <span>{t("total")}</span>
               <span>${total.toFixed(2)}</span>
             </div>
-
-            <Link 
-              href="/checkout" 
-              className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2"
-            >
+            <Link href="/checkout" className="w-full bg-black text-white min-h-[48px] rounded-lg font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2 touch-manipulation">
               {t("checkout")} <ArrowRight size={20} />
             </Link>
-            
-            <p className="text-xs text-gray-400 text-center mt-4">
-              {t("securePayments")}
-            </p>
+            <p className="text-xs text-gray-400 text-center mt-4">{t("securePayments")}</p>
           </div>
         </div>
-
       </div>
     </div>
   );

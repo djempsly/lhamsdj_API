@@ -3,8 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    @apply overflow-x-hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased overflow-x-hidden;
   }
 
   * {
@@ -13,6 +18,11 @@
 
   input, textarea, select {
     @apply text-gray-900;
+    font-size: 16px;
+  }
+
+  button, a {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

@@ -106,21 +106,21 @@ export default function LoginPage() {
 
   if (show2FA) {
     return (
-      <div className="flex min-h-[calc(100vh-150px)] items-center justify-center bg-gray-50 px-4">
-        <div className="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg border border-gray-100 text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+      <div className="flex min-h-[calc(100vh-150px)] items-center justify-center bg-gray-50 px-3 sm:px-4">
+        <div className="w-full max-w-sm bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 text-center">
+          <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
             {twoFACountry ? (
-              <span className="text-4xl">{countryCodeToFlag(twoFACountry)}</span>
+              <span className="text-3xl sm:text-4xl">{countryCodeToFlag(twoFACountry)}</span>
             ) : (
-              <ShieldCheck size={32} className="text-blue-600" />
+              <ShieldCheck size={28} className="text-blue-600 sm:w-8 sm:h-8" />
             )}
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{t("twoFactorRequired")}</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{t("twoFactorRequired")}</h2>
           <p className="text-gray-500 text-sm mb-6">{t("enter2FACode")}</p>
 
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm border border-red-200">{error}</div>}
 
-          <div className="flex justify-center gap-2 mb-6" onPaste={handleCodePaste}>
+          <div className="flex justify-center gap-1.5 sm:gap-2 mb-6" onPaste={handleCodePaste}>
             {twoFACode.map((digit, i) => (
               <input
                 key={i}
@@ -132,7 +132,7 @@ export default function LoginPage() {
                 onChange={(e) => handleCodeChange(i, e.target.value)}
                 onKeyDown={(e) => handleCodeKeyDown(i, e)}
                 disabled={verifying2FA}
-                className="w-11 h-13 text-center text-xl font-bold border-2 border-gray-200 rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none transition disabled:opacity-50"
+                className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none transition disabled:opacity-50"
               />
             ))}
           </div>
@@ -146,7 +146,7 @@ export default function LoginPage() {
 
           <button
             onClick={() => { setShow2FA(false); setError(""); setTwoFACode(["", "", "", "", "", ""]); }}
-            className="text-sm text-gray-500 hover:text-gray-700 hover:underline transition"
+            className="text-sm text-gray-500 hover:text-gray-700 hover:underline transition min-h-[44px] inline-flex items-center touch-manipulation"
           >
             {t("backToLogin")}
           </button>
@@ -156,15 +156,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-150px)] items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">{t("welcome")}</h2>
-          <p className="text-gray-500 mt-2">{t("loginSubtitle")}</p>
+    <div className="flex min-h-[calc(100vh-150px)] items-center justify-center bg-gray-50 px-3 sm:px-4">
+      <div className="w-full max-w-md bg-white p-5 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("welcome")}</h2>
+          <p className="text-gray-500 mt-2 text-sm sm:text-base">{t("loginSubtitle")}</p>
         </div>
 
         {error && (
-          <div className={`p-4 rounded-lg mb-6 text-sm border ${isVerificationError ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+          <div className={`p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm border ${isVerificationError ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-red-50 text-red-600 border-red-200"}`}>
             <div className="flex items-start gap-2">
               {isVerificationError && <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" />}
               <span>{error}</span>
@@ -172,11 +172,11 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input type="email" name="email" required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
               placeholder="you@example.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -187,27 +187,27 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
             <input type="password" name="password" required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
               placeholder="********"
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               autoComplete="current-password"
             />
             <div className="flex justify-end mt-1">
-              <Link href="/auth/forgot-password" className="text-xs text-blue-600 hover:underline font-medium">
+              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline font-medium min-h-[36px] inline-flex items-center touch-manipulation">
                 {t("forgotPassword")}
               </Link>
             </div>
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition duration-300 disabled:opacity-50">
+            className="w-full bg-black text-white min-h-[48px] rounded-lg font-semibold hover:bg-gray-800 transition duration-300 disabled:opacity-50 touch-manipulation active:scale-[0.98]">
             {loading ? t("loggingIn") : t("loginButton")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           {t("noAccount")}{" "}
-          <Link href="/auth/register" prefetch={false} className="text-blue-600 font-semibold hover:underline">
+          <Link href="/auth/register" prefetch={false} className="text-blue-600 font-semibold hover:underline touch-manipulation">
             {t("registerFree")}
           </Link>
         </p>
