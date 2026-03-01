@@ -4,7 +4,8 @@ interface RegisterData {
   name: string;
   email: string;
   password: string;
-  phone?: string;
+  phone: string;
+  country: string;
   captchaToken?: string;
 }
 
@@ -40,6 +41,20 @@ export async function loginUser(data: LoginData) {
   } catch (error) {
     console.error("Error en login:", error);
     return { success: false, message: "Error de conexión con el servidor" };
+  }
+}
+
+export async function verify2FALogin(userId: number, token: string) {
+  try {
+    const res = await fetch(`${API_URL}/auth/login/2fa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, token }),
+      credentials: "include",
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: "Connection error" };
   }
 }
 

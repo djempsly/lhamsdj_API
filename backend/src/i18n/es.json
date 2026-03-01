@@ -19,6 +19,7 @@
   "auth.codeExpired": "El código ha expirado",
   "auth.wrongCode": "Código incorrecto",
   "auth.userNotFound": "Usuario no encontrado",
+  "auth.invalid2FA": "Código de verificación inválido. Inténtalo de nuevo.",
   "auth.emailNotVerified": "Por favor verifica tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.",
   "auth.emailVerified": "¡Correo verificado correctamente! Ya puedes iniciar sesión.",
   "auth.alreadyVerified": "El correo ya está verificado. Puedes iniciar sesión.",

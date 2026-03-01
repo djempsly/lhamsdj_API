@@ -4,17 +4,19 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { ShoppingCart, Heart, User, LogOut, LayoutDashboard, Store } from "lucide-react";
 import SearchBar from "./SearchBar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import NotificationBell from "./NotificationBell";
 import { checkSession, logoutUser } from "@/services/authService";
 import { getCart } from "@/services/cartService";
+import { countryCodeToFlag } from "@/data/countries";
 
 export default function Navbar() {
   const router = useRouter();
   const t = useTranslations("navbar");
-  const [user, setUser] = useState<{ id: number; name: string; email: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ id: number; name: string; email: string; role: string; country?: string; profileImage?: string } | null>(null);
   const [cartCount, setCartCount] = useState(0);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -89,7 +91,13 @@ export default function Navbar() {
                   className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100"
                   aria-expanded={userMenuOpen}
                 >
-                  <User size={20} />
+                  {user.profileImage ? (
+                    <Image src={user.profileImage} alt={user.name} width={28} height={28} className="rounded-full object-cover" />
+                  ) : user.country ? (
+                    <span className="text-xl leading-none" title={user.country}>{countryCodeToFlag(user.country)}</span>
+                  ) : (
+                    <User size={20} />
+                  )}
                   <span className="hidden md:inline text-sm truncate max-w-[120px]">{user.name}</span>
                 </button>
                 {userMenuOpen && (

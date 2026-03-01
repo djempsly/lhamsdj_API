@@ -90,10 +90,16 @@ export const login = async (req: Request, res: Response) => {
   try {
     const validatedData = loginSchema.parse(req.body);
     const userAgent = req.headers['user-agent'];
-    const { user, accessToken, refreshToken } = await AuthService.login(validatedData, userAgent);
-    setAuthCookies(res, accessToken, refreshToken);
-    await audit({ userId: user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: user.id, ip: req.ip, userAgent });
-    res.json({ success: true, user });
+    const result = await AuthService.login(validatedData, userAgent);
+
+    if (result.requires2FA) {
+      await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent, details: '2FA required' });
+      return res.json({ success: true, requires2FA: true, userId: result.user.id, user: { country: result.user.country } });
+    }
+
+    setAuthCookies(res, result.accessToken, result.refreshToken);
+    await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent });
+    res.json({ success: true, user: result.user });
   } catch (error: any) {
     await audit({ action: AuditActions.LOGIN_FAILED, entity: 'User', details: error.message, ip: req.ip, userAgent: req.headers['user-agent'] });
     const isLocked = error.message?.includes('bloqueada');
@@ -104,6 +110,23 @@ export const login = async (req: Request, res: Response) => {
       message: translateAuthError(req.locale, error.message),
       ...(isNotVerified && { code: 'EMAIL_NOT_VERIFIED' }),
     });
+  }
+};
+
+export const loginVerify2FA = async (req: Request, res: Response) => {
+  try {
+    const { userId, token } = req.body;
+    if (!userId || !token) {
+      return res.status(400).json({ success: false, message: t(req.locale, 'auth.invalidRequest') });
+    }
+    const userAgent = req.headers['user-agent'];
+    const { user, accessToken, refreshToken } = await AuthService.loginWith2FA(userId, token, userAgent);
+    setAuthCookies(res, accessToken, refreshToken);
+    await audit({ userId: user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: user.id, ip: req.ip, userAgent, details: '2FA verified' });
+    res.json({ success: true, user });
+  } catch (error: any) {
+    const msg = error.message === 'INVALID_2FA_CODE' ? t(req.locale, 'auth.invalid2FA') : translateAuthError(req.locale, error.message);
+    res.status(401).json({ success: false, message: msg });
   }
 };
 

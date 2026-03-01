@@ -17,8 +17,8 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 30 * 60 * 1000;
 
 export const AuthService = {
-  async register(data: { email: string; password: string; name: string; phone?: string | undefined }, locale?: Locale) {
-    const { email, password, name, phone } = data;
+  async register(data: { email: string; password: string; name: string; phone: string; country: string }, locale?: Locale) {
+    const { email, password, name, phone, country } = data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) throw new Error('DUPLICATE_EMAIL');
@@ -31,7 +31,7 @@ export const AuthService = {
 
     const newUser = await prisma.user.create({
       data: {
-        name, email, password: hashedPassword, phone: phone ?? null,
+        name, email, password: hashedPassword, phone, country,
         role: 'USER', isActive: true, isVerified: false,
         verifyCode: hashedCode, verifyCodeExpiry,
       },
@@ -109,11 +109,32 @@ export const AuthService = {
 
     await prisma.user.update({ where: { id: user.id }, data: { loginAttempts: 0, lockedUntil: null } });
 
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
+      return { user: safeUser, requires2FA: true, accessToken: '', refreshToken: '' };
+    }
+
     const accessToken = generateAccessToken({ id: user.id, role: user.role, email: user.email });
     const refreshToken = generateRefreshToken();
     await storeRefreshToken(user.id, refreshToken, userAgent);
 
-    const { password: _, resetToken: __, resetTokenExpiry: ___, ...safeUser } = user;
+    const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
+    return { user: safeUser, requires2FA: false, accessToken, refreshToken };
+  },
+
+  async loginWith2FA(userId: number, token: string, userAgent?: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.twoFactorSecret) throw new Error('2FA_NOT_SETUP');
+
+    const { TwoFactorService } = await import('./twoFactorService');
+    const isValid = await TwoFactorService.verify(userId, token);
+    if (!isValid) throw new Error('INVALID_2FA_CODE');
+
+    const accessToken = generateAccessToken({ id: user.id, role: user.role, email: user.email });
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(user.id, refreshToken, userAgent);
+
+    const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
     return { user: safeUser, accessToken, refreshToken };
   },
 
@@ -180,7 +201,7 @@ export const AuthService = {
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
-        id: true, name: true, email: true, phone: true,
+        id: true, name: true, email: true, phone: true, country: true,
         profileImage: true, role: true, isActive: true, isVerified: true, createdAt: true,
       },
     });
