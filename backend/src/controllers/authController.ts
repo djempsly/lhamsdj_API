@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { t } from '../i18n/t';
 import { AuthService } from '../services/authService';
-import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validation/authSchema';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from '../validation/authSchema';
 import { setAuthCookies, clearAuthCookies } from '../utils/cookies';
 import { verifyCaptcha } from '../utils/captcha';
 import { audit, AuditActions } from '../lib/audit';
@@ -20,6 +20,7 @@ function translateAuthError(locale: string | undefined, errorMessage: string): s
   if (errorMessage === 'El código ha expirado') return t(locale, 'auth.codeExpired');
   if (errorMessage === 'Código incorrecto') return t(locale, 'auth.wrongCode');
   if (errorMessage === 'Usuario no encontrado') return t(locale, 'auth.userNotFound');
+  if (errorMessage === 'WRONG_CURRENT_PASSWORD') return t(locale, 'auth.wrongCurrentPassword');
   return errorMessage;
 }
 
@@ -191,6 +192,20 @@ export const resetPassword = async (req: Request, res: Response) => {
   } catch (error: any) {
     const message = translateAuthError(req.locale, error.message) || error.message;
     res.status(400).json({ success: false, message });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, message: t(req.locale, 'auth.notAuthenticated') });
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+    await AuthService.changePassword(req.user.id, currentPassword, newPassword);
+    clearAuthCookies(res);
+    res.json({ success: true, message: t(req.locale, 'auth.passwordUpdated') });
+  } catch (error: any) {
+    const message = translateAuthError(req.locale, error.message) || error.message;
+    const status = error.message === 'WRONG_CURRENT_PASSWORD' ? 401 : 400;
+    res.status(status).json({ success: false, message });
   }
 };
 

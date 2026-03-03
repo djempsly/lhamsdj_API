@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
+import { ZodError } from 'zod';
 import logger from '../lib/logger';
 import { t } from '../i18n/t';
 
@@ -9,10 +10,17 @@ interface ErrorWithStatus extends Error {
 }
 
 export const errorHandler = (err: ErrorWithStatus, req: Request, res: Response, _next: NextFunction) => {
-  let statusCode = err.status || 500;
+  let statusCode = err.status ?? 500;
   let message = err.message;
 
-  if (err instanceof multer.MulterError) {
+  if (err.name === 'ZodError' && err instanceof ZodError) {
+    statusCode = 400;
+    const first = err.issues[0];
+    message = first?.message ?? 'Validation error';
+  } else if (err.message?.includes('CORS')) {
+    statusCode = 403;
+    message = 'Origin not allowed';
+  } else if (err instanceof multer.MulterError) {
     statusCode = 400;
     switch (err.code) {
       case 'LIMIT_FILE_SIZE':
@@ -31,15 +39,19 @@ export const errorHandler = (err: ErrorWithStatus, req: Request, res: Response, 
     message = t(req.locale, 'middleware.serverError');
   }
 
-  logger.error({
-    statusCode,
-    message: err.message,
-    stack: err.stack,
-    method: req.method,
-    url: req.url,
-    ip: req.ip,
-    requestId: req.requestId,
-  });
+  if (err.name === 'ZodError') {
+    logger.warn({ message: err.message, url: req.url, method: req.method }, 'Validation error');
+  } else {
+    logger.error({
+      statusCode,
+      message: err.message,
+      stack: err.stack,
+      method: req.method,
+      url: req.url,
+      ip: req.ip,
+      requestId: req.requestId,
+    }, 'request_error');
+  }
 
   res.status(statusCode).json({
     success: false,

@@ -25,6 +25,7 @@
   "auth.alreadyVerified": "El correo ya está verificado. Puedes iniciar sesión.",
   "auth.verifyLinkExpired": "El enlace de verificación ha expirado. Por favor regístrate de nuevo.",
   "auth.verifyLinkInvalid": "Enlace de verificación inválido.",
+  "auth.wrongCurrentPassword": "La contraseña actual no es correcta.",
 
   "order.created": "Pedido creado correctamente",
   "order.notFound": "Pedido no encontrado",

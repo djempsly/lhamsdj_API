@@ -25,6 +25,7 @@
   "auth.alreadyVerified": "Email is already verified. You can log in.",
   "auth.verifyLinkExpired": "Verification link has expired. Please register again.",
   "auth.verifyLinkInvalid": "Invalid verification link.",
+  "auth.wrongCurrentPassword": "Current password is incorrect.",
 
   "order.created": "Order created successfully",
   "order.notFound": "Order not found",

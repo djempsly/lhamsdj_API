@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, loginVerify2FA, refresh, logout, logoutAll, forgotPassword, resetPassword, getMe, verifyEmail, verifyByCode } from '../controllers/authController';
+import { register, login, loginVerify2FA, refresh, logout, logoutAll, forgotPassword, resetPassword, changePassword, getMe, verifyEmail, verifyByCode } from '../controllers/authController';
 import { authenticate } from '../middleware/authMiddleware';
 import { authLimiter, refreshLimiter, passwordResetLimiter } from '../middleware/rateLimiters';
 import { generateCsrfToken } from '../middleware/csrfMiddleware';
@@ -17,6 +17,7 @@ router.post('/logout', logout);
 router.post('/logout-all', authenticate, logoutAll);
 router.post('/forgot-password', passwordResetLimiter, forgotPassword);
 router.post('/reset-password', passwordResetLimiter, resetPassword);
+router.post('/change-password', authenticate, changePassword);
 router.get('/me', authenticate, getMe);
 
 export default router;

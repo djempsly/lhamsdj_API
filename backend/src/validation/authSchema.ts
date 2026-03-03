@@ -30,3 +30,8 @@ export const resetPasswordSchema = z.object({
   code: z.string().length(6),
   newPassword: passwordSchema,
 });
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'validation.passwordRequired'),
+  newPassword: passwordSchema,
+});

@@ -25,6 +25,7 @@
   "auth.alreadyVerified": "L'e-mail est déjà vérifié. Vous pouvez vous connecter.",
   "auth.verifyLinkExpired": "Le lien de vérification a expiré. Veuillez vous réinscrire.",
   "auth.verifyLinkInvalid": "Lien de vérification invalide.",
+  "auth.wrongCurrentPassword": "Le mot de passe actuel est incorrect.",
 
   "order.created": "Commande créée avec succès",
   "order.notFound": "Commande non trouvée",

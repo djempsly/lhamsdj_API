@@ -208,4 +208,17 @@ export const AuthService = {
     if (!user) throw new Error('Usuario no encontrado');
     return user;
   },
+
+  async changePassword(userId: number, currentPassword: string, newPassword: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, password: true } });
+    if (!user) throw new Error('Usuario no encontrado');
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) throw new Error('WRONG_CURRENT_PASSWORD');
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword, loginAttempts: 0, lockedUntil: null },
+    });
+    return true;
+  },
 };

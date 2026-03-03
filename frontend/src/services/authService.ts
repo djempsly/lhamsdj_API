@@ -1,4 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getCsrfHeaders } from "@/lib/csrf";
 
 interface RegisterData {
   name: string;
@@ -14,11 +15,17 @@ interface LoginData {
   password: string;
 }
 
+async function mutationHeaders(): Promise<Record<string, string>> {
+  const csrf = await getCsrfHeaders();
+  return { "Content-Type": "application/json", ...csrf };
+}
+
 export async function registerUser(data: RegisterData) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(data),
       credentials: "include",
     });
@@ -31,9 +38,10 @@ export async function registerUser(data: RegisterData) {
 
 export async function loginUser(data: LoginData) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(data),
       credentials: "include",
     });
@@ -46,9 +54,10 @@ export async function loginUser(data: LoginData) {
 
 export async function verify2FALogin(userId: number, token: string) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/login/2fa`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ userId, token }),
       credentials: "include",
     });
@@ -60,9 +69,10 @@ export async function verify2FALogin(userId: number, token: string) {
 
 export async function forgotPassword(email: string) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/forgot-password`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ email }),
       credentials: "include",
     });
@@ -74,9 +84,10 @@ export async function forgotPassword(email: string) {
 
 export async function resetPassword(data: { email: string; code: string; newPassword: string }) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/reset-password`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(data),
       credentials: "include",
     });
@@ -101,9 +112,10 @@ export async function verifyUserEmail(token: string) {
 
 export async function verifyByCode(email: string, code: string) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/verify-code`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ email, code }),
       credentials: "include",
     });
@@ -128,8 +140,10 @@ export async function checkSession() {
 
 export async function refreshSession() {
   try {
+    const headers = await getCsrfHeaders();
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
+      headers,
       credentials: "include",
     });
     return await res.json();
@@ -140,8 +154,10 @@ export async function refreshSession() {
 
 export async function logoutUser() {
   try {
+    const headers = await getCsrfHeaders();
     await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
+      headers,
       credentials: "include",
     });
   } catch (error) {
@@ -153,8 +169,10 @@ export async function logoutUser() {
 
 export async function logoutAllDevices() {
   try {
+    const headers = await getCsrfHeaders();
     await fetch(`${API_URL}/auth/logout-all`, {
       method: "POST",
+      headers,
       credentials: "include",
     });
   } catch (error) {
@@ -166,9 +184,10 @@ export async function logoutAllDevices() {
 
 export async function changeUserPassword(data: { currentPassword: string; newPassword: string }) {
   try {
+    const headers = await mutationHeaders();
     const res = await fetch(`${API_URL}/auth/change-password`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(data),
       credentials: "include",
     });
