@@ -2,9 +2,11 @@ import { Router } from 'express';
 import { register, login, loginVerify2FA, refresh, logout, logoutAll, forgotPassword, resetPassword, getMe, verifyEmail, verifyByCode } from '../controllers/authController';
 import { authenticate } from '../middleware/authMiddleware';
 import { authLimiter, refreshLimiter, passwordResetLimiter } from '../middleware/rateLimiters';
+import { generateCsrfToken } from '../middleware/csrfMiddleware';
 
 const router = Router();
 
+router.get('/csrf', generateCsrfToken);
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
 router.post('/login/2fa', authLimiter, loginVerify2FA);

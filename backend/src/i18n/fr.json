@@ -122,6 +122,7 @@
   "middleware.mismatchMime": "Fichier \"{name}\" : l'extension déclarée ({declared}) ne correspond pas au contenu réel ({detected}).",
   "middleware.invalidExtension": "Extension \"{ext}\" non autorisée. Seulement : {allowed}",
   "middleware.invalidFilename": "Nom de fichier invalide.",
+  "middleware.invalidCsrf": "Jeton CSRF invalide ou manquant.",
 
   "validation.passwordMin": "Le mot de passe doit contenir au moins 8 caractères",
   "validation.passwordUpper": "Doit contenir au moins une lettre majuscule",

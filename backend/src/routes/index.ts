@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { apiPrivateLimiter } from '../middleware/rateLimiters';
+import { verifyCsrf } from '../middleware/csrfMiddleware';
 import authRoutes from './authRoutes';
 import userRoutes from './userRoutes';
 import categoryRoutes from './categoryRoutes';
@@ -32,6 +33,8 @@ import marketplaceRoutes from './marketplaceRoutes';
 import analyticsRoutes from './analyticsRoutes';
 
 const router = Router();
+
+router.use(verifyCsrf);
 
 // apiPrivateLimiter (100 req/min) only on routes that are fully protected (auth required).
 // Public read routes (products, categories, search, currencies, suppliers webhook) keep global 200/min.

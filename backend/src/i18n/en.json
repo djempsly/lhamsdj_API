@@ -122,6 +122,7 @@
   "middleware.mismatchMime": "File \"{name}\": declared extension ({declared}) does not match actual content ({detected}).",
   "middleware.invalidExtension": "Extension \"{ext}\" not allowed. Only: {allowed}",
   "middleware.invalidFilename": "Invalid filename.",
+  "middleware.invalidCsrf": "Invalid or missing CSRF token.",
 
   "validation.passwordMin": "Password must be at least 8 characters",
   "validation.passwordUpper": "Must contain at least one uppercase letter",
