@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import nocache from 'nocache';
 import swaggerUi from 'swagger-ui-express';
@@ -50,6 +51,9 @@ app.use(cors({
 
 // Rate limiting (specific endpoints have their own limits)
 app.use(apiPublicLimiter);
+
+// Compress responses (gzip)
+app.use(compression());
 
 // Stripe webhook (before JSON parser, needs raw body)
 app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), paymentRoutes);
