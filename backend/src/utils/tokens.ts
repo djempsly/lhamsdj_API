@@ -3,10 +3,10 @@ import crypto from 'crypto';
 import { prisma } from '../lib/prisma';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET must be defined in production');
+if (!JWT_SECRET || JWT_SECRET.length === 0) {
+  throw new Error('JWT_SECRET must be defined in environment');
 }
-const SECRET = JWT_SECRET || 'dev_fallback_only';
+const SECRET = JWT_SECRET;
 
 interface TokenPayload {
   id: number;

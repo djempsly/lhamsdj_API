@@ -215,6 +215,7 @@ model Address {
   isDefault  Boolean  @default(false)
   orders     Order[]
 
+  @@index([userId])
   @@map("addresses")
 }
 

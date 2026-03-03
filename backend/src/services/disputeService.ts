@@ -64,9 +64,18 @@ export const DisputeService = {
     });
   },
 
-  async addMessage(disputeId: number, userId: number, message: string) {
-    const dispute = await prisma.dispute.findUnique({ where: { id: disputeId } });
+  async addMessage(disputeId: number, userId: number, message: string, isStaff = false) {
+    const dispute = await prisma.dispute.findUnique({
+      where: { id: disputeId },
+      include: { vendor: { select: { userId: true } } },
+    });
     if (!dispute) throw new Error('DISPUTE_NOT_FOUND');
+
+    const isOwner = dispute.userId === userId;
+    const isVendor = dispute.vendor?.userId === userId;
+    if (!isStaff && !isOwner && !isVendor) {
+      throw new Error('FORBIDDEN');
+    }
 
     return prisma.disputeMessage.create({
       data: { disputeId, userId, message },

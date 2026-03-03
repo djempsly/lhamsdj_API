@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { prisma } from '../lib/prisma';
 import { ShipmentService } from '../services/shipmentService';
 import { parsePagination } from '../utils/pagination';
 import { z } from 'zod';
@@ -18,7 +19,18 @@ const updateStatusSchema = z.object({
 
 export const getOrderShipments = async (req: Request, res: Response) => {
   try {
-    const shipments = await ShipmentService.getByOrder(Number(req.params.orderId));
+    const orderId = Number(req.params.orderId);
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, userId: true },
+    });
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (order.userId !== userId) return res.status(403).json({ success: false, message: 'Forbidden' });
+
+    const shipments = await ShipmentService.getByOrder(orderId);
     res.json({ success: true, data: shipments });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

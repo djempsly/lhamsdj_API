@@ -13,6 +13,7 @@ router.post(
   authenticate,
   requireAdmin,
   upload.array('images', 10),
+  validateImageExtension,
   uploadMultipleImages,
 );
 

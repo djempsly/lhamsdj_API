@@ -28,11 +28,18 @@ export interface PaginatedResponse<T> {
 const MAX_LIMIT = 100;
 const DEFAULT_LIMIT = 20;
 
-export function parsePagination(query: PaginationQuery, defaultSort = 'createdAt'): PaginationResult {
+const DEFAULT_ALLOWED_SORT = ['createdAt', 'updatedAt', 'id'];
+
+export function parsePagination(
+  query: PaginationQuery,
+  defaultSort = 'createdAt',
+  allowedSortFields: string[] = DEFAULT_ALLOWED_SORT,
+): PaginationResult {
   const page = Math.max(1, parseInt(query.page || '1', 10) || 1);
   const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(query.limit || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
   const skip = (page - 1) * limit;
-  const sortBy = query.sort || defaultSort;
+  const requestedSort = (query.sort || defaultSort).trim();
+  const sortBy = allowedSortFields.includes(requestedSort) ? requestedSort : defaultSort;
   const sortOrder = query.order === 'asc' ? 'asc' : 'desc';
 
   return { page, limit, skip, sortBy, sortOrder };

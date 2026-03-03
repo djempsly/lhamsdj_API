@@ -43,10 +43,12 @@ export const addDisputeMessage = async (req: Request, res: Response) => {
   try {
     const { message } = req.body;
     if (!message) return res.status(400).json({ success: false, message: 'Message required' });
-    const msg = await DisputeService.addMessage(Number(req.params.id), req.user!.id, message);
+    const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'SUPPORT';
+    const msg = await DisputeService.addMessage(Number(req.params.id), req.user!.id, message, isStaff);
     res.status(201).json({ success: true, data: msg });
   } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+    const status = error.message === 'FORBIDDEN' ? 403 : error.message === 'DISPUTE_NOT_FOUND' ? 404 : 400;
+    res.status(status).json({ success: false, message: error.message });
   }
 };
 

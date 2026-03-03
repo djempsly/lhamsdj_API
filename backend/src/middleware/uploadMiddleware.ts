@@ -16,6 +16,15 @@ const fileFilter = (req: any, file: any, cb: any) => {
   }
 };
 
+const ALLOWED_S3_FOLDERS = ['products', 'profiles'];
+
+function getAllowedFolder(input: unknown): string {
+  if (typeof input !== 'string' || !input.trim()) return 'products';
+  const normalized = input.trim().toLowerCase();
+  if (ALLOWED_S3_FOLDERS.includes(normalized)) return normalized;
+  return 'products';
+}
+
 // S3 storage configuration
 const s3Storage = multerS3({
   s3: s3Client,
@@ -24,14 +33,13 @@ const s3Storage = multerS3({
   metadata: (req, file, cb) => {
     cb(null, { fieldName: file.fieldname });
   },
-
-  
   key: (req: any, file, cb) => {
-    const folder = req.body.folder ? req.body.folder : 'products';
+    const folder = getAllowedFolder(req.body?.folder);
     const uniqueSuffix = crypto.randomUUID();
-    const extension = path.extname(file.originalname);
-    cb(null, `${folder}/${uniqueSuffix}${extension}`);
-  }
+    const ext = path.extname(file.originalname).toLowerCase();
+    const safeExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.jpg';
+    cb(null, `${folder}/${uniqueSuffix}${safeExt}`);
+  },
 });
 
 export const upload = multer({
