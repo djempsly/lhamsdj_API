@@ -45,7 +45,7 @@ describe("apiFetch", () => {
   it("returns synthetic response on network failure", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
     const res = await apiFetch("http://localhost:4000/api/v1/categories");
-    expect(res.status).toBe(0);
+    expect(res.status).toBe(503);
     const body = await res.json();
     expect(body.success).toBe(false);
     expect(body.message).toMatch(/connection/i);

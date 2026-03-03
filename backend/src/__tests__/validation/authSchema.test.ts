@@ -1,4 +1,4 @@
-import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../../validation/authSchema';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from '../../validation/authSchema';
 
 describe('Auth validation schemas', () => {
   describe('registerSchema', () => {
@@ -82,6 +82,30 @@ describe('Auth validation schemas', () => {
 
     it('rejects weak newPassword', () => {
       expect(() => resetPasswordSchema.parse({ ...valid, newPassword: 'short' })).toThrow();
+    });
+  });
+
+  describe('changePasswordSchema', () => {
+    const valid = { currentPassword: 'OldPass1!', newPassword: 'NewSecure1!' };
+
+    it('accepts valid change password data', () => {
+      expect(() => changePasswordSchema.parse(valid)).not.toThrow();
+    });
+
+    it('rejects empty currentPassword', () => {
+      expect(() => changePasswordSchema.parse({ ...valid, currentPassword: '' })).toThrow();
+    });
+
+    it('rejects weak newPassword (no uppercase)', () => {
+      expect(() => changePasswordSchema.parse({ ...valid, newPassword: 'nouppercase1!' })).toThrow();
+    });
+
+    it('rejects weak newPassword (no symbol)', () => {
+      expect(() => changePasswordSchema.parse({ ...valid, newPassword: 'NoSymbol123' })).toThrow();
+    });
+
+    it('rejects short newPassword', () => {
+      expect(() => changePasswordSchema.parse({ ...valid, newPassword: 'Sh1!' })).toThrow();
     });
   });
 });

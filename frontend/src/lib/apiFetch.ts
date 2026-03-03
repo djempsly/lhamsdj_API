@@ -31,7 +31,7 @@ async function refreshOnce(): Promise<boolean> {
 
 const EMPTY_RESPONSE = () =>
   new Response(JSON.stringify({ success: false, message: "Connection error" }), {
-    status: 0,
+    status: 503,
     headers: { "Content-Type": "application/json" },
   });
 
@@ -57,7 +57,7 @@ export async function apiFetch(
     } catch {
       return new Response(
         JSON.stringify({ success: false, message: "CSRF token unavailable" }),
-        { status: 0, headers: { "Content-Type": "application/json" } },
+        { status: 503, headers: { "Content-Type": "application/json" } },
       );
     }
   }
