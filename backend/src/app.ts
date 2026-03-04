@@ -15,8 +15,11 @@ import { securityHeaders } from './middleware/securityHeaders';
 import { apiPublicLimiter } from './middleware/rateLimiters';
 import { requestId } from './middleware/requestId';
 import { geolocate } from './middleware/geolocate';
+import { metricsMiddleware } from './middleware/metricsMiddleware';
 import logger from './lib/logger';
 import { localeMiddleware } from './middleware/localeMiddleware';
+import { register as metricsRegister } from './lib/metrics';
+import { prisma } from './lib/prisma';
 
 const app: Application = express();
 
@@ -72,6 +75,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Metrics (for Prometheus)
+app.use(metricsMiddleware);
+
 // Swagger docs (development only)
 if (process.env.NODE_ENV !== 'production') {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -81,9 +87,25 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/api/v1', routes);
 app.use('/api/v1/payments', paymentRoutes);
 
-// Health check
+// Health check (simple)
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', service: 'LhamsDJ API' });
+});
+
+// Health check with DB (for alerting: 503 = degraded)
+app.get('/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ status: 'ok', db: 'up' });
+  } catch {
+    res.status(503).json({ status: 'degraded', db: 'down' });
+  }
+});
+
+// Prometheus metrics (no aggressive rate limit so scraper is not blocked)
+app.get('/metrics', async (_req, res) => {
+  res.setHeader('Content-Type', metricsRegister.contentType);
+  res.send(await metricsRegister.metrics());
 });
 
 // Global error handler (always last)

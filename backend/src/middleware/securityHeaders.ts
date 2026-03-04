@@ -11,7 +11,11 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
 
   if (process.env.NODE_ENV === 'production') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; font-src 'self' https:; connect-src 'self'");
+    // CSP estricta: API solo sirve JSON; restringir orígenes para cualquier respuesta HTML de error
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; img-src 'self' data: https:; script-src 'self'; style-src 'self'; connect-src 'self'"
+    );
   }
 
   next();
