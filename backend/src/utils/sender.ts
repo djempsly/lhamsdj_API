@@ -99,3 +99,27 @@ export const sendEmailVerification = async (email: string, token: string, code: 
     return false;
   }
 };
+
+export const sendMagicLink = async (email: string, magicUrl: string, locale?: Locale) => {
+  const lang = locale || 'en';
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'LhamsDJ <noreply@lhamsdj.com>',
+      to: email,
+      subject: 'Inicia sesión en LhamsDJ',
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #111827;">Inicio de sesión sin contraseña</h2>
+          <p>Haz clic en el enlace para acceder a tu cuenta (válido 15 minutos):</p>
+          <a href="${magicUrl}" style="display: inline-block; background: #111827; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin: 16px 0;">Acceder a mi cuenta</a>
+          <p style="color: #6B7280; font-size: 13px;">Si no solicitaste este correo, ignóralo.</p>
+        </div>
+      `
+    });
+    if (error) { console.error('[RESEND ERROR]', error); return false; }
+    return true;
+  } catch (err) {
+    console.error('[RESEND ERROR]', err);
+    return false;
+  }
+};

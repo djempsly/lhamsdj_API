@@ -26,8 +26,10 @@ export function verifyCsrf(req: Request, res: Response, next: NextFunction) {
   const hasCookieAuth = !!req.cookies?.access_token;
   if (hasBearer && !hasCookieAuth) return next();
 
-  const headerToken = (req.headers['x-csrf-token'] ?? '').trim();
-  const cookieToken = req.cookies?.['csrf-token'] ?? '';
+  const rawHeader = req.headers['x-csrf-token'];
+  const headerToken = (typeof rawHeader === 'string' ? rawHeader : Array.isArray(rawHeader) ? rawHeader[0] : '')?.trim() ?? '';
+  const rawCookie = req.cookies?.['csrf-token'];
+  const cookieToken = typeof rawCookie === 'string' ? rawCookie : Array.isArray(rawCookie) ? rawCookie[0] ?? '' : '';
   if (!headerToken || !cookieToken || headerToken !== cookieToken) {
     return res.status(403).json({
       success: false,

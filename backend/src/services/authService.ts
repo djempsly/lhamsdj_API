@@ -1,11 +1,14 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { prisma } from '../lib/prisma';
-import { sendVerificationCode, sendEmailVerification } from '../utils/sender';
+import { sendVerificationCode, sendEmailVerification, sendMagicLink } from '../utils/sender';
 import {
   generateAccessToken,
   generateRefreshToken,
   generateEmailVerificationToken,
   verifyEmailVerificationToken,
+  generateMagicLinkToken,
+  verifyMagicLinkToken,
   storeRefreshToken,
   validateRefreshToken,
   revokeRefreshToken,
@@ -15,6 +18,7 @@ import { Locale } from '../i18n/t';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 30 * 60 * 1000;
+const ROLES_REQUIRING_MFA = ['ADMIN', 'VENDOR'];
 
 export const AuthService = {
   async register(data: { email: string; password: string; name: string; phone: string; country: string }, locale?: Locale) {
@@ -77,8 +81,8 @@ export const AuthService = {
     return { alreadyVerified: false };
   },
 
-  async login(data: { email: string; password: string }, userAgent?: string) {
-    const { email, password } = data;
+  async login(data: { email: string; password: string; deviceFingerprint?: string }, userAgent?: string, ip?: string) {
+    const { email, password, deviceFingerprint } = data;
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) throw new Error('Credenciales inválidas');
@@ -93,7 +97,7 @@ export const AuthService = {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       const attempts = user.loginAttempts + 1;
-      const updateData: any = { loginAttempts: attempts };
+      const updateData: { loginAttempts: number; lockedUntil?: Date } = { loginAttempts: attempts };
       if (attempts >= MAX_LOGIN_ATTEMPTS) {
         updateData.lockedUntil = new Date(Date.now() + LOCK_DURATION_MS);
         updateData.loginAttempts = 0;
@@ -109,9 +113,38 @@ export const AuthService = {
 
     await prisma.user.update({ where: { id: user.id }, data: { loginAttempts: 0, lockedUntil: null } });
 
+    const mustEnroll2FA = ROLES_REQUIRING_MFA.includes(user.role) && !user.twoFactorEnabled;
+    if (mustEnroll2FA) {
+      const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
+      return { user: safeUser, requires2FA: true, mustEnroll2FA: true, accessToken: '', refreshToken: '' };
+    }
+
     if (user.twoFactorEnabled && user.twoFactorSecret) {
       const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
-      return { user: safeUser, requires2FA: true, accessToken: '', refreshToken: '' };
+      return { user: safeUser, requires2FA: true, mustEnroll2FA: false, accessToken: '', refreshToken: '' };
+    }
+
+    const fingerprintHash = deviceFingerprint
+      ? crypto.createHash('sha256').update(deviceFingerprint).digest('hex')
+      : null;
+    let newDevice = false;
+    if (fingerprintHash) {
+      const known = await prisma.knownDevice.findUnique({
+        where: { userId_fingerprintHash: { userId: user.id, fingerprintHash } },
+      });
+      if (!known) {
+        newDevice = true;
+        await prisma.knownDevice.upsert({
+          where: { userId_fingerprintHash: { userId: user.id, fingerprintHash } },
+          create: { userId: user.id, fingerprintHash, name: userAgent?.slice(0, 100) ?? 'Device' },
+          update: userAgent ? { lastSeen: new Date(), name: userAgent.slice(0, 100) } : { lastSeen: new Date() },
+        });
+      } else {
+        await prisma.knownDevice.update({
+          where: { id: known.id },
+          data: { lastSeen: new Date() },
+        });
+      }
     }
 
     const accessToken = generateAccessToken({ id: user.id, role: user.role, email: user.email });
@@ -119,7 +152,7 @@ export const AuthService = {
     await storeRefreshToken(user.id, refreshToken, userAgent);
 
     const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
-    return { user: safeUser, requires2FA: false, accessToken, refreshToken };
+    return { user: safeUser, requires2FA: false, accessToken, refreshToken, newDevice };
   },
 
   async loginWith2FA(userId: number, token: string, userAgent?: string) {
@@ -220,5 +253,34 @@ export const AuthService = {
       data: { password: hashedPassword, loginAttempts: 0, lockedUntil: null },
     });
     return true;
+  },
+
+  async requestMagicLink(email: string, locale?: Locale) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.isActive || !user.isVerified) return false;
+    const token = generateMagicLinkToken(email);
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const magicUrl = `${FRONTEND_URL}/auth/magic-link?token=${token}`;
+    await sendMagicLink(email, magicUrl, locale);
+    return true;
+  },
+
+  async loginWithMagicLink(token: string, userAgent?: string) {
+    const { email } = verifyMagicLinkToken(token);
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.isActive || !user.isVerified) throw new Error('USER_NOT_FOUND');
+    if (ROLES_REQUIRING_MFA.includes(user.role) && !user.twoFactorEnabled) {
+      const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
+      return { user: safeUser, requires2FA: true, mustEnroll2FA: true, accessToken: '', refreshToken: '' };
+    }
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
+      return { user: safeUser, requires2FA: true, accessToken: '', refreshToken: '' };
+    }
+    const accessToken = generateAccessToken({ id: user.id, role: user.role, email: user.email });
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(user.id, refreshToken, userAgent);
+    const { password: _, resetToken: __, resetTokenExpiry: ___, twoFactorSecret: ____, ...safeUser } = user;
+    return { user: safeUser, requires2FA: false, accessToken, refreshToken };
   },
 };

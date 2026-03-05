@@ -10,10 +10,11 @@ datasource db {
 // ─── ENUMS ───────────────────────────────────────────────
 
 enum Role {
-  USER
-  ADMIN
-  SUPPORT
-  VENDOR
+  USER    // COMPRADOR
+  ADMIN   // ADMIN_MARKETPLACE
+  SUPPORT // SOPORTE
+  VENDOR  // VENDEDOR
+  DELIVERY
 }
 
 enum OrderStatus {
@@ -130,6 +131,7 @@ model User {
   loyaltyTransactions  LoyaltyTransaction[]
   recentlyViewed       RecentlyViewed[]
   backupCodes          TwoFactorBackupCode[]
+  knownDevices         KnownDevice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,10 +173,19 @@ model Vendor {
   type            VendorType   @default(STANDARD)
   status          VendorStatus @default(PENDING)
 
-  products   Product[]
-  shipments  Shipment[]
-  payouts    VendorPayout[]
-  disputes   Dispute[]
+  kycStatus               String?   @default("PENDING")
+  documentType            String?
+  documentUrl             String?
+  documentVerifiedAt      DateTime?
+  businessAddressVerifiedAt DateTime?
+  bankAccountVerifiedAt  DateTime?
+
+  products    Product[]
+  shipments   Shipment[]
+  payouts     VendorPayout[]
+  disputes    Dispute[]
+  apiKeys     VendorApiKey[]
+  kycReviews  VendorKycReview[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -182,6 +193,32 @@ model Vendor {
   @@index([status])
   @@index([slug])
   @@map("vendors")
+}
+
+model VendorApiKey {
+  id        Int      @id @default(autoincrement())
+  vendorId  Int
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name      String
+  keyHash   String
+  scopes    String   @db.Text
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([vendorId])
+  @@index([keyHash])
+  @@map("vendor_api_keys")
+}
+
+model VendorKycReview {
+  id          Int      @id @default(autoincrement())
+  vendorId    Int
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  reviewedBy  Int?
+  status      String
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  @@index([vendorId])
+  @@map("vendor_kyc_reviews")
 }
 
 model VendorPayout {
@@ -653,17 +690,31 @@ model TwoFactorBackupCode {
 
 // ─── ACTIVE SESSIONS ────────────────────────────────────
 model ActiveSession {
+  id                  Int      @id @default(autoincrement())
+  userId              Int
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token               String   @unique
+  ip                  String?
+  userAgent           String?
+  country             String?
+  deviceFingerprintHash String?
+  lastActive          DateTime @default(now())
+  createdAt           DateTime @default(now())
+  @@index([userId])
+  @@map("active_sessions")
+}
+
+model KnownDevice {
   id        Int      @id @default(autoincrement())
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique
-  ip        String?
-  userAgent String?
-  country   String?
-  lastActive DateTime @default(now())
+  fingerprintHash String
+  name      String?
+  lastSeen  DateTime @default(now())
   createdAt DateTime @default(now())
+  @@unique([userId, fingerprintHash])
   @@index([userId])
-  @@map("active_sessions")
+  @@map("known_devices")
 }
 
 // ─── MESSAGES (Buyer-Seller) ────────────────────────────

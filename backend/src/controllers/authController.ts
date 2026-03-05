@@ -91,16 +91,31 @@ export const login = async (req: Request, res: Response) => {
   try {
     const validatedData = loginSchema.parse(req.body);
     const userAgent = req.headers['user-agent'];
-    const result = await AuthService.login(validatedData, userAgent);
+    const deviceFingerprint = (req.body as { deviceFingerprint?: string }).deviceFingerprint;
+    const result = await AuthService.login(
+      { email: validatedData.email, password: validatedData.password, ...(deviceFingerprint && { deviceFingerprint }) },
+      userAgent,
+      req.ip
+    );
 
     if (result.requires2FA) {
-      await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent, details: '2FA required' });
-      return res.json({ success: true, requires2FA: true, userId: result.user.id, user: { country: result.user.country } });
+      await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent, details: result.mustEnroll2FA ? '2FA enrollment required' : '2FA required' });
+      return res.json({
+        success: true,
+        requires2FA: true,
+        mustEnroll2FA: (result as { mustEnroll2FA?: boolean }).mustEnroll2FA ?? false,
+        userId: result.user.id,
+        user: { country: result.user.country },
+      });
     }
 
-    setAuthCookies(res, result.accessToken, result.refreshToken);
+    setAuthCookies(res, result.accessToken!, result.refreshToken!);
     await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent });
-    res.json({ success: true, user: result.user });
+    res.json({
+      success: true,
+      user: result.user,
+      ...((result as { newDevice?: boolean }).newDevice && { newDevice: true }),
+    });
   } catch (error: any) {
     await audit({ action: AuditActions.LOGIN_FAILED, entity: 'User', details: error.message, ip: req.ip, userAgent: req.headers['user-agent'] });
     const isLocked = error.message?.includes('bloqueada');
@@ -218,4 +233,84 @@ export const getMe = async (req: Request, res: Response) => {
     const message = translateAuthError(req.locale, error.message) || error.message;
     res.status(400).json({ success: false, message });
   }
+};
+
+export const magicLinkRequest = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string') return res.status(400).json({ success: false, message: t(req.locale, 'auth.invalidRequest') });
+    const sent = await AuthService.requestMagicLink(email.trim().toLowerCase(), req.locale);
+    res.json({ success: true, message: sent ? t(req.locale, 'auth.checkEmail') : t(req.locale, 'auth.invalidRequest') });
+  } catch (e) {
+    res.status(500).json({ success: false, message: t(req.locale, 'auth.invalidRequest') });
+  }
+};
+
+export const magicLinkVerify = async (req: Request, res: Response) => {
+  try {
+    const token = (req.query.token ?? req.body?.token) as string;
+    if (!token) return res.status(400).json({ success: false, message: t(req.locale, 'auth.invalidRequest') });
+    const userAgent = req.headers['user-agent'];
+    const result = await AuthService.loginWithMagicLink(token, userAgent);
+    if (result.requires2FA) {
+      return res.json({ success: true, requires2FA: true, mustEnroll2FA: (result as { mustEnroll2FA?: boolean }).mustEnroll2FA, userId: result.user.id, user: { country: result.user.country } });
+    }
+    setAuthCookies(res, result.accessToken!, result.refreshToken!);
+    res.json({ success: true, user: result.user });
+  } catch (e: any) {
+    const msg = e.name === 'TokenExpiredError' ? t(req.locale, 'auth.verifyLinkExpired') : t(req.locale, 'auth.invalidRequest');
+    res.status(400).json({ success: false, message: msg });
+  }
+};
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
+export const oauthGoogleRedirect = async (req: Request, res: Response) => {
+  if (!GOOGLE_CLIENT_ID) return res.status(503).json({ success: false, message: 'OAuth no configurado' });
+  const state = Buffer.from(JSON.stringify({ redirect: req.query.redirect_uri || FRONTEND_URL })).toString('base64url');
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/google/callback`)}&response_type=code&scope=openid%20email%20profile&state=${state}`;
+  res.redirect(url);
+};
+
+export const oauthGoogleCallback = async (req: Request, res: Response) => {
+  const { code, state } = req.query;
+  if (!code || typeof code !== 'string') return res.redirect(`${FRONTEND_URL}/auth/login?error=no_code`);
+  let redirect = FRONTEND_URL;
+  try {
+    if (state && typeof state === 'string') {
+      const decoded = JSON.parse(Buffer.from(state, 'base64url').toString());
+      if (decoded.redirect) redirect = decoded.redirect;
+    }
+  } catch {}
+  const apiUrl = process.env.API_URL || 'http://localhost:4000';
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI || `${apiUrl}/api/v1/auth/google/callback`,
+      grant_type: 'authorization_code',
+    }),
+  });
+  if (!tokenRes.ok) return res.redirect(`${FRONTEND_URL}/auth/login?error=oauth_failed`);
+  const tokens = await tokenRes.json();
+  const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    headers: { Authorization: `Bearer ${tokens.access_token}` },
+  });
+  if (!userRes.ok) return res.redirect(`${FRONTEND_URL}/auth/login?error=oauth_failed`);
+  const googleUser = await userRes.json();
+  const { OAuthService } = await import('../services/oauthService');
+  const result = await OAuthService.findOrCreateGoogleUser(googleUser);
+  if (!result.user) return res.redirect(`${FRONTEND_URL}/auth/login?error=oauth_failed`);
+  if (result.requires2FA) {
+    return res.redirect(`${redirect}/auth/login?userId=${result.user.id}&requires2FA=1`);
+  }
+  const { generateAccessToken, generateRefreshToken, storeRefreshToken } = await import('../utils/tokens');
+  const accessToken = generateAccessToken({ id: result.user.id, role: result.user.role, email: result.user.email });
+  const refreshToken = generateRefreshToken();
+  await storeRefreshToken(result.user.id, refreshToken, req.headers['user-agent']);
+  res.redirect(`${redirect}/auth/oauth-callback?access_token=${accessToken}&refresh_token=${refreshToken}`);
 };

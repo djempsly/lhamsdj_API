@@ -1,4 +1,4 @@
-# LhamsDJ – Marketplace
+h# LhamsDJ – Marketplace
 
 Marketplace tipo e-commerce con roles de comprador, vendedor y administrador. Incluye catálogo, carrito, checkout, pagos (Stripe/PayPal), vendors, dropshipping, disputas, soporte, loyalty, i18n (EN/FR/ES) y panel admin.
 
