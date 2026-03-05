@@ -32,7 +32,7 @@ Estado frente al plan de 11 capas. Leyenda: ✅ Implementado | 🟡 Parcial | �
 | Comprador solo SUS órdenes/datos | ✅ | OrderService.getMyOrders(userId), getOrderById(userId). |
 | Moderador suspende vendedores/productos | 🟡 | Admin puede cambiar status; rol MODERATOR y permisos específicos opcionales. |
 | Aislamiento multi-tenant entre vendedores | ✅ | Queries por vendorId (VendorService por userId → vendor.id). |
-| API keys con scopes por vendedor | ✅ | VendorApiKey; POST/GET/DELETE /vendors/me/api-keys; X-Api-Key o Bearer; apiKeyAuth(scope) middleware. |
+| API keys con scopes por vendedor | ✅ | Scopes: products, orders, analytics, inventory, reports:export, payouts, profile (read/write). apiKeyAuth(scope). |
 
 ---
 
@@ -136,7 +136,7 @@ Estado frente al plan de 11 capas. Leyenda: ✅ Implementado | 🟡 Parcial | �
 
 | Requisito | Estado | Notas |
 |-----------|--------|--------|
-| KYC, documento identidad, dirección negocio, cuenta bancaria | ✅ | Vendor.kycStatus, documentType, documentUrl, *VerifiedAt; GET/POST /vendors/me/kyc; POST /vendors/admin/kyc/:vendorId/review. |
+| KYC, documento identidad, dirección negocio, cuenta bancaria | ✅ | documentType: ID_CARD|PASSPORT|TAX_ID; documentUrl obligatorio; rechazo exige notes; validación submitKycSchema/adminReviewKycSchema. |
 | Periodo prueba / escrow 30 días / scoring / suspensión automática | 🟡 | VendorStatus PENDING/ACTIVE/SUSPENDED; reglas en servicio. |
 
 ---

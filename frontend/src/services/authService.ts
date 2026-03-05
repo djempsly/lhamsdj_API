@@ -125,6 +125,36 @@ export async function verifyByCode(email: string, code: string) {
   }
 }
 
+export async function requestMagicLink(email: string) {
+  try {
+    const headers = await mutationHeaders();
+    const res = await fetch(`${API_URL}/auth/magic-link`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ email }),
+      credentials: "include",
+    });
+    return await res.json();
+  } catch (error) {
+    console.error("Magic link request error:", error);
+    return { success: false, message: "Error de conexión" };
+  }
+}
+
+export async function verifyMagicLink(token: string) {
+  try {
+    const res = await fetch(`${API_URL}/auth/magic-link/verify?token=${encodeURIComponent(token)}`, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "include",
+    });
+    return await res.json();
+  } catch (error) {
+    console.error("Magic link verify error:", error);
+    return { success: false, message: "Error de conexión" };
+  }
+}
+
 export async function checkSession() {
   try {
     const { apiFetch } = await import("@/lib/apiFetch");

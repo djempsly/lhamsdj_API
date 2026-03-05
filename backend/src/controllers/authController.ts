@@ -312,5 +312,6 @@ export const oauthGoogleCallback = async (req: Request, res: Response) => {
   const accessToken = generateAccessToken({ id: result.user.id, role: result.user.role, email: result.user.email });
   const refreshToken = generateRefreshToken();
   await storeRefreshToken(result.user.id, refreshToken, req.headers['user-agent']);
-  res.redirect(`${redirect}/auth/oauth-callback?access_token=${accessToken}&refresh_token=${refreshToken}`);
+  setAuthCookies(res, accessToken, refreshToken);
+  res.redirect(`${redirect}/auth/oauth-callback`);
 };

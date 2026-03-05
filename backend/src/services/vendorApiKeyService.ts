@@ -1,7 +1,15 @@
 import crypto from 'crypto';
 import { prisma } from '../lib/prisma';
 
-const SCOPES = ['products:read', 'products:write', 'orders:read', 'orders:write', 'analytics:read'] as const;
+const SCOPES = [
+  'products:read', 'products:write',
+  'orders:read', 'orders:write',
+  'analytics:read', 'analytics:write',
+  'inventory:read', 'inventory:write',
+  'reports:export',
+  'payouts:read',
+  'profile:read', 'profile:write',
+] as const;
 export type VendorApiKeyScope = (typeof SCOPES)[number];
 export const VALID_SCOPES = SCOPES;
 
