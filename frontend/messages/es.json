@@ -281,7 +281,17 @@
     "updating": "Actualizando...",
     "updatePassword": "Actualizar contraseña",
     "passwordsMismatch": "Las nuevas contraseñas no coinciden",
-    "passwordUpdated": "Contraseña actualizada correctamente"
+    "passwordUpdated": "Contraseña actualizada correctamente",
+    "activeSessions": "Sesiones activas",
+    "activeSessionsDesc": "Dispositivos donde has iniciado sesión. Revoca cualquier sesión que no reconozcas.",
+    "revokeSession": "Revocar",
+    "currentDevice": "Dispositivo actual",
+    "exportMyData": "Descargar mis datos",
+    "exportMyDataDesc": "Descarga una copia de tus datos personales (RGPD).",
+    "downloadData": "Descargar",
+    "sessionRevoked": "Sesión revocada",
+    "noSessions": "No hay otras sesiones activas",
+    "dataExported": "Datos descargados"
   },
   "payment": {
     "securePayment": "Pago seguro",
@@ -316,6 +326,8 @@
   },
   "vendor": {
     "notFound": "Vendedor no encontrado",
+    "kyc": "Verificación (KYC)",
+    "apiKeys": "Claves API",
     "products": "Productos",
     "productsOf": "Productos de",
     "noProducts": "Este vendedor aún no tiene productos",
@@ -534,7 +546,9 @@
       "bundles": "Paquetes",
       "taxRules": "Reglas fiscales",
       "tickets": "Tickets",
-      "auditLog": "Registro de auditoría"
+      "auditLog": "Registro de auditoría",
+      "security": "Seguridad",
+      "newsletter": "Newsletter"
     }
   }
 }

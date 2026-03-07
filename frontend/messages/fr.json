@@ -281,7 +281,17 @@
     "updating": "Mise à jour en cours...",
     "updatePassword": "Mettre à Jour le Mot de Passe",
     "passwordsMismatch": "Les nouveaux mots de passe ne correspondent pas",
-    "passwordUpdated": "Mot de passe mis à jour avec succès"
+    "passwordUpdated": "Mot de passe mis à jour avec succès",
+    "activeSessions": "Sessions actives",
+    "activeSessionsDesc": "Appareils où vous êtes connecté. Révoquez toute session non reconnue.",
+    "revokeSession": "Révoquer",
+    "currentDevice": "Appareil actuel",
+    "exportMyData": "Télécharger mes données",
+    "exportMyDataDesc": "Téléchargez une copie de vos données personnelles (RGPD).",
+    "downloadData": "Télécharger",
+    "sessionRevoked": "Session révoquée",
+    "noSessions": "Aucune autre session active",
+    "dataExported": "Données téléchargées"
   },
   "payment": {
     "securePayment": "Paiement Sécurisé",
@@ -316,6 +326,8 @@
   },
   "vendor": {
     "notFound": "Vendeur non trouvé",
+    "kyc": "Vérification (KYC)",
+    "apiKeys": "Clés API",
     "products": "Produits",
     "productsOf": "Produits de",
     "noProducts": "Ce vendeur n'a pas encore de produits",
@@ -535,7 +547,9 @@
       "bundles": "Lots",
       "taxRules": "Règles fiscales",
       "tickets": "Tickets",
-      "auditLog": "Journal d'Audit"
+      "auditLog": "Journal d'Audit",
+      "security": "Sécurité",
+      "newsletter": "Newsletter"
     }
   }
 }

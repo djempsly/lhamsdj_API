@@ -226,3 +226,38 @@ export async function changeUserPassword(data: { currentPassword: string; newPas
     return { success: false, message: "Error de conexión" };
   }
 }
+
+export async function getActiveSessions() {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/2fa/sessions`, { cache: "no-store" });
+    return await res.json();
+  } catch {
+    return { success: false, data: [] };
+  }
+}
+
+export async function revokeSession(sessionId: number) {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/2fa/sessions/${sessionId}`, { method: "DELETE" });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Error revoking session" };
+  }
+}
+
+export async function exportMyData() {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/analytics/my-data`, { cache: "no-store" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, message: err?.message || "Export failed" };
+    }
+    const json = await res.json();
+    return { success: true, data: json?.data };
+  } catch {
+    return { success: false, message: "Error exporting data" };
+  }
+}

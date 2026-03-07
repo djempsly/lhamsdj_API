@@ -281,7 +281,17 @@
     "updating": "Updating...",
     "updatePassword": "Update Password",
     "passwordsMismatch": "New passwords do not match",
-    "passwordUpdated": "Password updated successfully"
+    "passwordUpdated": "Password updated successfully",
+    "activeSessions": "Active sessions",
+    "activeSessionsDesc": "Devices where you are logged in. Revoke any session you don't recognize.",
+    "revokeSession": "Revoke",
+    "currentDevice": "Current device",
+    "exportMyData": "Download my data",
+    "exportMyDataDesc": "Download a copy of your personal data (GDPR).",
+    "downloadData": "Download",
+    "sessionRevoked": "Session revoked",
+    "noSessions": "No other active sessions",
+    "dataExported": "Data downloaded"
   },
   "payment": {
     "securePayment": "Secure Payment",
@@ -316,6 +326,8 @@
   },
   "vendor": {
     "notFound": "Vendor not found",
+    "kyc": "Verification (KYC)",
+    "apiKeys": "API Keys",
     "products": "Products",
     "productsOf": "Products from",
     "noProducts": "This vendor doesn't have products yet",
@@ -535,7 +547,9 @@
       "bundles": "Bundles",
       "taxRules": "Tax Rules",
       "tickets": "Tickets",
-      "auditLog": "Audit Log"
+      "auditLog": "Audit Log",
+      "security": "Security",
+      "newsletter": "Newsletter"
     }
   }
 }

@@ -10,6 +10,8 @@ import {
   Truck,
   Wallet,
   User,
+  ShieldCheck,
+  Key,
 } from "lucide-react";
 
 function safeT(t: (key: string) => string, key: string, fallback: string): string {
@@ -31,6 +33,8 @@ export default function VendorSidebar() {
     { nameKey: "orders", href: "/vendor/orders", icon: ShoppingCart },
     { nameKey: "shipments", href: "/vendor/shipments", icon: Truck },
     { nameKey: "payouts", href: "/vendor/payouts", icon: Wallet },
+    { nameKey: "kyc", href: "/vendor/kyc", icon: ShieldCheck },
+    { nameKey: "apiKeys", href: "/vendor/api-keys", icon: Key },
     { nameKey: "profile", href: "/vendor/profile", icon: User },
   ];
 

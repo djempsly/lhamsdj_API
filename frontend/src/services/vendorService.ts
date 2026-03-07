@@ -75,3 +75,47 @@ export async function getMyPayouts() {
     return await res.json();
   } catch { return { success: false, data: [] }; }
 }
+
+export async function getMyKyc() {
+  try {
+    const res = await apiFetch(`${API_URL}/vendors/me/kyc`, { cache: "no-store" });
+    return await res.json();
+  } catch { return { success: false }; }
+}
+
+export async function submitKyc(data: { documentType: string; documentUrl: string }) {
+  const res = await apiFetch(`${API_URL}/vendors/me/kyc`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return await res.json();
+}
+
+export async function getApiKeyScopes() {
+  try {
+    const res = await apiFetch(`${API_URL}/vendors/me/api-keys/scopes`, { cache: "no-store" });
+    return await res.json();
+  } catch { return { success: false, data: [] }; }
+}
+
+export async function listApiKeys() {
+  try {
+    const res = await apiFetch(`${API_URL}/vendors/me/api-keys`, { cache: "no-store" });
+    return await res.json();
+  } catch { return { success: false, data: [] }; }
+}
+
+export async function createApiKey(data: { name: string; scopes: string[] }) {
+  const res = await apiFetch(`${API_URL}/vendors/me/api-keys`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return await res.json();
+}
+
+export async function revokeApiKey(id: number) {
+  const res = await apiFetch(`${API_URL}/vendors/me/api-keys/${id}`, { method: "DELETE" });
+  return await res.json();
+}

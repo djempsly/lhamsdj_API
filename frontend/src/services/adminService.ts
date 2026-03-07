@@ -35,6 +35,25 @@ export async function getDashboardStats() {
   return await res.json();
 }
 
+export async function getSecurityDashboard() {
+  const res = await apiFetch(`${API_URL}/security/dashboard`, { cache: "no-store" });
+  return await res.json();
+}
+
+export async function getNewsletterSubscribers() {
+  const res = await apiFetch(`${API_URL}/marketplace/newsletter/subscribers`, { cache: "no-store" });
+  return await res.json();
+}
+
+export async function reviewVendorKyc(vendorId: number, data: { status: "APPROVED" | "REJECTED"; notes?: string }) {
+  const res = await apiFetch(`${API_URL}/vendors/admin/kyc/${vendorId}/review`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return await res.json();
+}
+
 export async function getVendors(params?: { page?: number; limit?: number; status?: string }) {
   const sp = new URLSearchParams();
   if (params?.page != null) sp.set("page", String(params.page));
@@ -170,6 +189,7 @@ export async function fulfillOrder(orderId: number) {
   return await res.json();
 }
 
+/** @deprecated Backend no expone GET /shipments/admin/all. La página admin/shipments usa getOrders() y aplana order.shipments. */
 export async function getShipments() {
   const res = await apiFetch(`${API_URL}/shipments/admin/all`, { cache: "no-store" });
   return await res.json();
