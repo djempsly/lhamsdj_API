@@ -9,6 +9,7 @@ import logger from './lib/logger';
 import { startTokenCleanupJob } from './jobs/cleanupTokens';
 import { startCurrencySyncJob } from './jobs/syncCurrencyRates';
 import { startDropshipSyncJob } from './jobs/syncDropshipInventory';
+import { startDealOfTheDayJob } from './jobs/sendDealOfTheDay';
 
 const PORT = process.env.PORT || 4000;
 
@@ -17,4 +18,5 @@ app.listen(PORT, () => {
   startTokenCleanupJob();
   startCurrencySyncJob();
   startDropshipSyncJob();
+  startDealOfTheDayJob();
 });

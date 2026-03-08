@@ -297,6 +297,7 @@ model Product {
   flashSaleItems   FlashSaleItem[]
   bundleItems      BundleItem[]
   recentlyViewed   RecentlyViewed[]
+  dealOfTheDay     DealOfTheDay[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -803,6 +804,17 @@ model FlashSaleItem {
   sold        Int       @default(0)
   @@unique([flashSaleId, productId])
   @@map("flash_sale_items")
+}
+
+// ─── DEAL OF THE DAY (Ofertas del día) ───────────────────
+model DealOfTheDay {
+  id        Int     @id @default(autoincrement())
+  productId Int     @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  position  Int     @default(0)
+  createdAt DateTime @default(now())
+  @@index([position])
+  @@map("deal_of_the_day")
 }
 
 // ─── GIFT CARDS ─────────────────────────────────────────

@@ -57,29 +57,41 @@ export default function Carousel() {
 
   return (
     <div
-      className="relative w-full h-[250px] sm:h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden rounded-xl"
+      className="group relative w-full h-[280px] sm:h-[380px] md:h-[480px] lg:h-[520px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div
-        className="flex transition-transform duration-500 ease-out h-full"
+        className="flex transition-transform duration-700 ease-out h-full"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {slides.map((slide) => (
+        {slides.map((slide, i) => (
           <div key={slide.id} className="min-w-full relative h-full">
             <Image
               src={slide.image}
               alt={slide.title}
               fill
-              className="object-cover brightness-75"
+              className={`object-cover transition-transform duration-700 ${i === current ? "scale-100" : "scale-105"}`}
               sizes="100vw"
               priority={slide.id === 1}
             />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 sm:p-8">
-              <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2 sm:mb-4 drop-shadow-lg leading-tight">{slide.title}</h2>
-              <p className="text-sm sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-8 drop-shadow-md max-w-2xl">{slide.description}</p>
-              <Link href="/products" className="bg-white text-black px-6 sm:px-8 min-h-[44px] sm:min-h-[48px] flex items-center rounded-full font-bold hover:bg-gray-200 transition touch-manipulation active:scale-95 text-sm sm:text-base">
+            {/* Overlay gradiente para legibilidad y profundidad */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6 sm:p-10">
+              <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-white/90 mb-2">
+                {i + 1} / {slides.length}
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-3 sm:mb-4 leading-tight tracking-tight drop-shadow-2xl">
+                {slide.title}
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 max-w-xl text-white/95 drop-shadow-lg">
+                {slide.description}
+              </p>
+              <Link
+                href="/products"
+                className="bg-white text-black px-8 sm:px-10 py-3.5 sm:py-4 rounded-full font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-105 active:scale-100 transition-all duration-300 touch-manipulation"
+              >
                 {t("viewOffers")}
               </Link>
             </div>
@@ -87,27 +99,29 @@ export default function Carousel() {
         ))}
       </div>
 
-      {/* Arrows - always visible on mobile, hover on desktop */}
-      <button onClick={prevSlide} aria-label="Previous"
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/30 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full text-white hover:bg-black/50 md:opacity-0 md:group-hover:opacity-100 transition touch-manipulation"
+      <button
+        onClick={prevSlide}
+        aria-label="Previous"
+        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm text-white border border-white/20 hover:bg-white/25 hover:scale-110 md:opacity-0 md:group-hover:opacity-100 transition-all touch-manipulation z-10"
       >
-        <ChevronLeft size={22} className="sm:w-7 sm:h-7" />
+        <ChevronLeft size={24} className="sm:w-7 sm:h-7" />
       </button>
-      <button onClick={nextSlide} aria-label="Next"
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/30 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full text-white hover:bg-black/50 md:opacity-0 md:group-hover:opacity-100 transition touch-manipulation"
+      <button
+        onClick={nextSlide}
+        aria-label="Next"
+        className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm text-white border border-white/20 hover:bg-white/25 hover:scale-110 md:opacity-0 md:group-hover:opacity-100 transition-all touch-manipulation z-10"
       >
-        <ChevronRight size={22} className="sm:w-7 sm:h-7" />
+        <ChevronRight size={24} className="sm:w-7 sm:h-7" />
       </button>
 
-      {/* Dots */}
-      <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 flex justify-center gap-2">
+      <div className="absolute bottom-4 sm:bottom-6 left-0 right-0 flex justify-center gap-2.5 z-10">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrent(index)}
             aria-label={`Go to slide ${index + 1}`}
-            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition touch-manipulation ${
-              current === index ? "bg-white scale-110" : "bg-white/50"
+            className={`h-1.5 sm:h-2 rounded-full transition-all touch-manipulation ${
+              current === index ? "bg-white w-8 sm:w-10" : "bg-white/50 w-2 hover:bg-white/70"
             }`}
           />
         ))}

@@ -38,6 +38,52 @@ export function shippingUpdateEmail(data: { orderId: number; status: string; tra
   };
 }
 
+export function dealOfTheDayEmail(data: {
+  baseUrl: string;
+  products: Array<{ name: string; slug: string; price: string; image: string | null }>;
+}) {
+  const productCards = data.products
+    .map(
+      (p) => `
+      <div style="width:180px;display:inline-block;vertical-align:top;margin:8px;text-align:center;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
+        <a href="${data.baseUrl}/product/${p.slug}" style="text-decoration:none;color:inherit;">
+          <div style="height:160px;background:#F3F4F6;">
+            ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" />` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#9CA3AF;">Sin imagen</div>'}
+          </div>
+          <div style="padding:12px;">
+            <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#111827;line-height:1.3;">${p.name}</p>
+            <p style="margin:0;font-size:16px;font-weight:bold;color:#059669;">$${p.price}</p>
+            <span style="display:inline-block;margin-top:8px;font-size:12px;color:#3B82F6;">Ver oferta ?</span>
+          </div>
+        </a>
+      </div>
+    `
+    )
+    .join('');
+
+  return {
+    subject: 'Ofertas del d?a ? LhamsDJ',
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <h1 style="margin:0;font-size:24px;color:#111827;">LhamsDJ</h1>
+        </div>
+        <div style="background:linear-gradient(135deg,#059669 0%,#047857 100%);color:white;padding:24px;border-radius:12px;text-align:center;">
+          <h2 style="margin:0;font-size:22px;">Ofertas del d?a</h2>
+          <p style="margin:8px 0 0;opacity:0.95;">Productos seleccionados con las mejores ofertas para ti.</p>
+        </div>
+        <div style="padding:24px 0;text-align:center;">
+          ${productCards || '<p style="color:#6B7280;">No hay ofertas esta vez. ?Vuelve pronto!</p>'}
+        </div>
+        <div style="text-align:center;margin-top:24px;">
+          <a href="${data.baseUrl}/products" style="display:inline-block;background:#111827;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Ver todos los productos</a>
+        </div>
+        <p style="font-size:12px;color:#9CA3AF;margin-top:24px;text-align:center;">Recibes este correo porque te suscribiste a las ofertas de LhamsDJ. <a href="${data.baseUrl}/api/unsubscribe" style="color:#6B7280;">Desuscribirse</a></p>
+      </div>
+    `,
+  };
+}
+
 export function orderConfirmationEmail(data: { orderId: number; total: string; itemCount: number }) {
   return {
     subject: `Pedido #${data.orderId} confirmado`,

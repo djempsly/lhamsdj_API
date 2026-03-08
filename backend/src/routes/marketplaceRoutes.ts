@@ -37,5 +37,15 @@ router.patch('/questions/:id/answer', authenticate, requireAdmin, mc.answerQuest
 router.post('/newsletter/subscribe', mc.subscribeNewsletter);
 router.post('/newsletter/unsubscribe', mc.unsubscribeNewsletter);
 router.get('/newsletter/subscribers', authenticate, requireAdmin, mc.getNewsletterSubscribers);
+router.post('/newsletter/send-deal', authenticate, requireAdmin, mc.sendDealToSubscribers);
+
+// Deal of the day (Ofertas del día) – public
+router.get('/deal-of-the-day', mc.getDealOfTheDay);
+
+// Deal of the day – admin
+router.get('/deal-of-the-day/admin', authenticate, requireAdmin, mc.getDealOfTheDayAdmin);
+router.post('/deal-of-the-day', authenticate, requireAdmin, mc.addDealProduct);
+router.delete('/deal-of-the-day/:id', authenticate, requireAdmin, mc.removeDealProduct);
+router.patch('/deal-of-the-day/reorder', authenticate, requireAdmin, mc.reorderDealOfTheDay);
 
 export default router;

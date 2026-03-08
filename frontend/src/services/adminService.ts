@@ -54,6 +54,39 @@ export async function reviewVendorKyc(vendorId: number, data: { status: "APPROVE
   return await res.json();
 }
 
+export async function getDealOfTheDayAdmin() {
+  const res = await apiFetch(`${API_URL}/marketplace/deal-of-the-day/admin`, { cache: "no-store" });
+  return await res.json();
+}
+
+export async function addDealProduct(productId: number) {
+  const res = await apiFetch(`${API_URL}/marketplace/deal-of-the-day`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ productId }),
+  });
+  return await res.json();
+}
+
+export async function removeDealProduct(id: number) {
+  const res = await apiFetch(`${API_URL}/marketplace/deal-of-the-day/${id}`, { method: "DELETE" });
+  return await res.json();
+}
+
+export async function reorderDealOfTheDay(ids: number[]) {
+  const res = await apiFetch(`${API_URL}/marketplace/deal-of-the-day/reorder`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  return await res.json();
+}
+
+export async function sendDealToSubscribers() {
+  const res = await apiFetch(`${API_URL}/marketplace/newsletter/send-deal`, { method: "POST" });
+  return await res.json();
+}
+
 export async function getVendors(params?: { page?: number; limit?: number; status?: string }) {
   const sp = new URLSearchParams();
   if (params?.page != null) sp.set("page", String(params.page));
