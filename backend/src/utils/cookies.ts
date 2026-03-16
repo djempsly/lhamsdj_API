@@ -2,16 +2,16 @@ import { Response } from 'express';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 días
+const ACCESS_MAX_AGE = 60 * 60 * 1000; // 1 hora — cookie lives longer than JWT (15min) so
+                                         // the middleware always sees it, but the short maxAge
+                                         // limits exposure if the JWT is compromised.
 
 export function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
-  // Cookie lasts 7 days (same as refresh token); the JWT inside expires in 1h.
-  // This ensures the middleware always sees the cookie, while apiFetch
-  // handles the JWT expiry transparently via /auth/refresh.
   res.cookie('access_token', accessToken, {
     httpOnly: true,
     secure: IS_PROD,
     sameSite: 'lax',
-    maxAge: REFRESH_MAX_AGE,
+    maxAge: ACCESS_MAX_AGE,
     path: '/',
   });
 

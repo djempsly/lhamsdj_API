@@ -15,6 +15,17 @@ const SQL_PATTERNS = [
   /'\s*(OR|AND)\s*'?\s*\d*\s*=\s*\d*/gi,
 ];
 
+/**
+ * Fields that contain user free-text (descriptions, messages, etc.) are exempt
+ * from SQL-injection pattern matching because they generate false positives.
+ * These fields are already safe via Prisma parameterized queries.
+ */
+const SQL_CHECK_EXEMPT_FIELDS = new Set([
+  'description', 'body', 'message', 'comment', 'content',
+  'question', 'answer', 'notes', 'details', 'resolution',
+  'subject', 'bio', 'about',
+]);
+
 function sanitizeString(value: string): string {
   let clean = value;
 
@@ -51,14 +62,23 @@ function sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
 }
 
 function detectSqlInjection(value: string): boolean {
-  return SQL_PATTERNS.some((pattern) => pattern.test(value));
+  return SQL_PATTERNS.some((pattern) => {
+    pattern.lastIndex = 0; // reset regex state for /g patterns
+    return pattern.test(value);
+  });
 }
 
-function deepCheckSql(obj: unknown): boolean {
-  if (typeof obj === 'string') return detectSqlInjection(obj);
-  if (Array.isArray(obj)) return obj.some(deepCheckSql);
+function deepCheckSql(obj: unknown, parentKey?: string): boolean {
+  if (typeof obj === 'string') {
+    // Skip free-text fields that would trigger false positives
+    if (parentKey && SQL_CHECK_EXEMPT_FIELDS.has(parentKey)) return false;
+    return detectSqlInjection(obj);
+  }
+  if (Array.isArray(obj)) return obj.some((item) => deepCheckSql(item, parentKey));
   if (obj !== null && typeof obj === 'object') {
-    return Object.values(obj as Record<string, unknown>).some(deepCheckSql);
+    return Object.entries(obj as Record<string, unknown>).some(
+      ([key, value]) => deepCheckSql(value, key),
+    );
   }
   return false;
 }

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Send } from "lucide-react";
+import { apiFetch } from "@/lib/apiFetch";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -12,7 +15,7 @@ export default function NewsletterSignup() {
     if (!email) return;
     setStatus("loading");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/newsletter/subscribe`, {
+      const res = await apiFetch(`${API_URL}/marketplace/newsletter/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

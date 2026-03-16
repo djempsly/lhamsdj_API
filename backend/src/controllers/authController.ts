@@ -266,9 +266,25 @@ export const magicLinkVerify = async (req: Request, res: Response) => {
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
+/** Validate that a redirect URI belongs to an allowed origin (prevents open redirect). */
+function isAllowedRedirect(uri: string): boolean {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim());
+  allowedOrigins.push(FRONTEND_URL);
+  try {
+    const parsed = new URL(uri);
+    return allowedOrigins.includes(parsed.origin);
+  } catch {
+    return false;
+  }
+}
+
 export const oauthGoogleRedirect = async (req: Request, res: Response) => {
   if (!GOOGLE_CLIENT_ID) return res.status(503).json({ success: false, message: 'OAuth no configurado' });
-  const state = Buffer.from(JSON.stringify({ redirect: req.query.redirect_uri || FRONTEND_URL })).toString('base64url');
+  const requestedRedirect = typeof req.query.redirect_uri === 'string' ? req.query.redirect_uri : FRONTEND_URL;
+  const safeRedirect = isAllowedRedirect(requestedRedirect) ? requestedRedirect : FRONTEND_URL;
+  const state = Buffer.from(JSON.stringify({ redirect: safeRedirect })).toString('base64url');
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/google/callback`)}&response_type=code&scope=openid%20email%20profile&state=${state}`;
   res.redirect(url);
 };
@@ -280,7 +296,9 @@ export const oauthGoogleCallback = async (req: Request, res: Response) => {
   try {
     if (state && typeof state === 'string') {
       const decoded = JSON.parse(Buffer.from(state, 'base64url').toString());
-      if (decoded.redirect) redirect = decoded.redirect;
+      if (decoded.redirect && isAllowedRedirect(decoded.redirect)) {
+        redirect = decoded.redirect;
+      }
     }
   } catch {}
   const apiUrl = process.env.API_URL || 'http://localhost:4000';

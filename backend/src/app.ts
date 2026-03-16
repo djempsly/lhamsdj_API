@@ -92,8 +92,17 @@ app.get('/', (_req, res) => {
   res.json({ status: 'ok', service: 'LhamsDJ API' });
 });
 
-// Health check with DB (for alerting: 503 = degraded)
-app.get('/health', async (_req, res) => {
+// Health check with DB — restricted to internal/trusted IPs
+app.get('/health', (req, res, next) => {
+  const ip = req.ip || req.socket?.remoteAddress || '';
+  const trusted = /^(127\.|::1|::ffff:127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(ip);
+  if (trusted) return next();
+  // In production, only trusted IPs; in dev, allow all
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  next();
+}, async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({ status: 'ok', db: 'up' });
@@ -102,8 +111,21 @@ app.get('/health', async (_req, res) => {
   }
 });
 
-// Prometheus metrics (no aggressive rate limit so scraper is not blocked)
-app.get('/metrics', async (_req, res) => {
+// Prometheus metrics — protected: only internal/trusted IPs or Bearer token
+app.get('/metrics', (req, res, next) => {
+  const metricsToken = process.env.METRICS_TOKEN;
+  const authHeader = req.headers.authorization;
+
+  // Allow if a METRICS_TOKEN is configured and matches Bearer header
+  if (metricsToken && authHeader === `Bearer ${metricsToken}`) return next();
+
+  // Allow trusted internal IPs (loopback, Docker bridge, private ranges)
+  const ip = req.ip || req.socket?.remoteAddress || '';
+  const trusted = /^(127\.|::1|::ffff:127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(ip);
+  if (trusted) return next();
+
+  res.status(403).json({ success: false, message: 'Forbidden' });
+}, async (_req, res) => {
   res.setHeader('Content-Type', metricsRegister.contentType);
   res.send(await metricsRegister.metrics());
 });

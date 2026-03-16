@@ -80,15 +80,21 @@ function ResetPasswordContent() {
   const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Support both sessionStorage (preferred, no browser history leakage) and URL fallback
   const emailFromUrl = searchParams.get("email") || "";
 
-  const [formData, setFormData] = useState({ email: emailFromUrl, code: "", newPassword: "" });
+  const [formData, setFormData] = useState({ email: "", code: "", newPassword: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Actualizar si el email llega tarde
   useEffect(() => {
-    if(emailFromUrl) setFormData(prev => ({ ...prev, email: emailFromUrl }));
+    const storedEmail = typeof window !== "undefined" ? sessionStorage.getItem("reset_email") : null;
+    const email = storedEmail || emailFromUrl;
+    if (email) {
+      setFormData(prev => ({ ...prev, email }));
+      // Clean up after reading
+      if (storedEmail) sessionStorage.removeItem("reset_email");
+    }
   }, [emailFromUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,8 +120,8 @@ function ResetPasswordContent() {
         {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* El email se envía pero está oculto visualmente si ya vino por URL */}
-          {!emailFromUrl && (
+          {/* Email field hidden if pre-filled from forgot-password flow */}
+          {!formData.email && (
              <input
                type="email"
                placeholder="Email"

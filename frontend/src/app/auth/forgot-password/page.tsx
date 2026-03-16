@@ -28,7 +28,9 @@ export default function ForgotPasswordPage() {
 
     if (res.success) {
       setMessage(res.message || "Si el correo existe, recibirás un código.");
-      router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+      // Store email in sessionStorage instead of URL to avoid browser history leakage
+      sessionStorage.setItem("reset_email", email);
+      router.push("/auth/reset-password");
     } else {
       setError(res.message);
     }

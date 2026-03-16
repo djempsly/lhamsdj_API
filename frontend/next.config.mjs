@@ -7,6 +7,12 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // --- Security: disable source maps in production builds ---
+  productionBrowserSourceMaps: false,
+
+  // --- Security: remove X-Powered-By header ---
+  poweredByHeader: false,
+
   outputFileTracingRoot: __dirname,
   images: {
     formats: ["image/avif", "image/webp"],

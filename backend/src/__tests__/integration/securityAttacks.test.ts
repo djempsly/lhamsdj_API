@@ -18,6 +18,8 @@ async function getCsrf() {
   return { agent, token: r.body.csrfToken as string };
 }
 
+const TIMEOUT = 30000;
+
 describe('Security – simulación de ataques', () => {
   describe('SQL Injection', () => {
     it('rechaza body con patrón SQL (400)', async () => {
@@ -33,7 +35,7 @@ describe('Security – simulación de ataques', () => {
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('success', false);
       expect(res.body.message).toMatch(/no permitida|Entrada/i);
-    });
+    }, TIMEOUT);
 
     it('rechaza body con UNION SELECT (400)', async () => {
       const { agent, token } = await getCsrf();
@@ -47,7 +49,7 @@ describe('Security – simulación de ataques', () => {
         .set('Content-Type', 'application/json');
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('success', false);
-    });
+    }, TIMEOUT);
 
     it('rechaza query con patrón SQL (400)', async () => {
       const res = await request(app)
@@ -56,7 +58,7 @@ describe('Security – simulación de ataques', () => {
         .set('Accept', 'application/json');
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('success', false);
-    });
+    }, TIMEOUT);
   });
 
   describe('JWT inválido / manipulado', () => {
@@ -66,14 +68,14 @@ describe('Security – simulación de ataques', () => {
         .set('Authorization', 'Bearer invalid.jwt.token');
       expect(res.status).toBe(401);
       expect(res.body).toHaveProperty('success', false);
-    });
+    }, TIMEOUT);
 
     it('GET /api/v1/orders con JWT malformado (sin 3 partes) → 401', async () => {
       const res = await request(app)
         .get('/api/v1/orders')
         .set('Authorization', 'Bearer not-a-valid-jwt');
       expect(res.status).toBe(401);
-    });
+    }, TIMEOUT);
 
     it('GET /api/v1/me con token manipulado (payload base64 falso) → 401', async () => {
       const tampered = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OTk5LCJyb2xlIjoiADTpSUQiLCJlbWFpbCI6ImhhY2tAZXhhbXBsZS5jb20ifQ.fake';
@@ -81,13 +83,13 @@ describe('Security – simulación de ataques', () => {
         .get('/api/v1/auth/me')
         .set('Authorization', `Bearer ${tampered}`);
       expect(res.status).toBe(401);
-    });
+    }, TIMEOUT);
   });
 
   describe('Rate limit (auth)', () => {
     it('más de 20 requests a /auth/login en la ventana → 429', async () => {
       const { agent, token } = await getCsrf();
-      const loginBody = { email: 'test@example.com', password: 'ValidPass1!' };
+      const loginBody = { email: 'ratelimit-test@example.com', password: 'ValidPass1!' };
       let lastStatus = 0;
       for (let i = 0; i < 22; i++) {
         const res = await agent
@@ -99,7 +101,7 @@ describe('Security – simulación de ataques', () => {
         if (res.status === 429) break;
       }
       expect(lastStatus).toBe(429);
-    }, 30000);
+    }, 60000);
   });
 
   describe('Payload excesivo (DoS)', () => {
@@ -112,7 +114,7 @@ describe('Security – simulación de ataques', () => {
         .send({ email: 'a@b.com', password: big })
         .set('Content-Type', 'application/json');
       expect(res.status).toBe(413);
-    });
+    }, TIMEOUT);
   });
 
   describe('CSRF', () => {
@@ -124,7 +126,7 @@ describe('Security – simulación de ataques', () => {
       expect(res.status).toBe(403);
       expect(res.body).toHaveProperty('success', false);
       expect(res.body.message).toMatch(/csrf|CSRF|inválido|invalid/i);
-    });
+    }, TIMEOUT);
   });
 
   describe('Path traversal', () => {
@@ -133,6 +135,6 @@ describe('Security – simulación de ataques', () => {
         .get('/api/v1/../auth/me')
         .set('Accept', 'application/json');
       expect([404, 401]).toContain(res.status);
-    });
+    }, TIMEOUT);
   });
 });

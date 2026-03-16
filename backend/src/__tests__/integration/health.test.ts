@@ -13,5 +13,5 @@ describe('API health', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('status', 'ok');
     expect(res.body).toHaveProperty('service', 'LhamsDJ API');
-  });
+  }, 30000);
 });

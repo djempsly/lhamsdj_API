@@ -7,24 +7,27 @@ export const DealOfTheDayService = {
       orderBy: { position: 'asc' },
       include: {
         product: {
-          where: { isActive: true },
           select: {
             id: true,
             name: true,
             slug: true,
             price: true,
             description: true,
+            isActive: true,
             images: { take: 1, orderBy: { id: 'asc' }, select: { url: true } },
           },
         },
       },
     });
     return rows
-      .filter((r) => r.product != null)
+      .filter((r) => r.product?.isActive === true)
       .map((r) => ({
-        ...r.product!,
-        image: (r.product as any).images?.[0]?.url ?? null,
-        images: undefined,
+        id: r.product!.id,
+        name: r.product!.name,
+        slug: r.product!.slug,
+        price: r.product!.price,
+        description: r.product!.description,
+        image: r.product!.images?.[0]?.url ?? null,
       }));
   },
 

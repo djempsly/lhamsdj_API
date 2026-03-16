@@ -11,7 +11,8 @@ function getKey(): Buffer {
   if (!secret || secret.length < 32) {
     throw new Error('PII_ENCRYPTION_KEY must be set and at least 32 characters');
   }
-  return crypto.scryptSync(secret, 'pii-salt', KEY_LEN);
+  const salt = process.env.PII_ENCRYPTION_SALT || 'pii-salt';
+  return crypto.scryptSync(secret, salt, KEY_LEN);
 }
 
 /**

@@ -1,4 +1,10 @@
 node_modules
 dist
+dist-obf
 .env
+.env.*
 *.log
+coverage
+.git
+.github
+.vscode

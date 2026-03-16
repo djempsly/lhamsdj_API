@@ -25,8 +25,7 @@ export async function uploadImages(files: FileList | File[]) {
     }
 
     return json;
-  } catch (error) {
-    console.error("Upload error:", error);
+  } catch {
     return { success: false, message: "Connection error" };
   }
 }

@@ -30,8 +30,7 @@ export async function registerUser(data: RegisterData) {
       credentials: "include",
     });
     return await res.json();
-  } catch (error) {
-    console.error("Error en registro:", error);
+  } catch {
     return { success: false, message: "Error de conexión con el servidor" };
   }
 }
@@ -46,8 +45,7 @@ export async function loginUser(data: LoginData) {
       credentials: "include",
     });
     return await res.json();
-  } catch (error) {
-    console.error("Error en login:", error);
+  } catch {
     return { success: false, message: "Error de conexión con el servidor" };
   }
 }
@@ -135,8 +133,7 @@ export async function requestMagicLink(email: string) {
       credentials: "include",
     });
     return await res.json();
-  } catch (error) {
-    console.error("Magic link request error:", error);
+  } catch {
     return { success: false, message: "Error de conexión" };
   }
 }
@@ -149,8 +146,7 @@ export async function verifyMagicLink(token: string) {
       credentials: "include",
     });
     return await res.json();
-  } catch (error) {
-    console.error("Magic link verify error:", error);
+  } catch {
     return { success: false, message: "Error de conexión" };
   }
 }
@@ -190,8 +186,8 @@ export async function logoutUser() {
       headers,
       credentials: "include",
     });
-  } catch (error) {
-    console.error("Error en logout:", error);
+  } catch {
+    // Silently handle logout errors — redirect happens regardless
   } finally {
     window.location.href = "/auth/login";
   }
@@ -205,8 +201,8 @@ export async function logoutAllDevices() {
       headers,
       credentials: "include",
     });
-  } catch (error) {
-    console.error("Error en logout-all:", error);
+  } catch {
+    // Silently handle logout errors — redirect happens regardless
   } finally {
     window.location.href = "/auth/login";
   }
