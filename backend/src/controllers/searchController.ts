@@ -15,9 +15,23 @@ export const advancedSearch = async (req: Request, res: Response) => {
     if (req.query.minRating) params.minRating = Number(req.query.minRating);
     if (req.query.vendorId) params.vendorId = Number(req.query.vendorId);
     if (req.query.inStock === 'true') params.inStock = true;
+    if (req.query.color) params.color = req.query.color as string;
+    if (req.query.size) params.size = req.query.size as string;
     if (req.query.sort) params.sort = req.query.sort as string;
     const result = await SearchService.advancedSearch(params);
     res.json({ success: true, ...result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getFilters = async (req: Request, res: Response) => {
+  try {
+    const params: { categoryId?: number; q?: string } = {};
+    if (req.query.categoryId) params.categoryId = Number(req.query.categoryId);
+    if (req.query.q) params.q = req.query.q as string;
+    const data = await SearchService.getFilters(params);
+    res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
