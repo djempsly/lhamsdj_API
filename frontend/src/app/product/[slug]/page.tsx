@@ -8,6 +8,7 @@ import { addToCart } from "@/services/cartService";
 import Image from "next/image";
 import { Check, AlertCircle } from "lucide-react";
 import ReviewSection from "@/components/product/ReviewSection";
+import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 
 export default function ProductDetailPage() {
@@ -108,6 +109,11 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+      <Breadcrumbs items={[
+        { label: t("allProducts"), href: "/products" },
+        ...(product.category ? [{ label: product.category.name, href: `/products?categoryId=${product.categoryId}` }] : []),
+        { label: product.name },
+      ]} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
 
         {/* Gallery */}

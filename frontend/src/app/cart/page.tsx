@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { getCart, updateCartItem, removeCartItem } from "@/services/cartService";
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
+import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 export default function CartPage() {
   const t = useTranslations("cart");
@@ -71,6 +72,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+      <Breadcrumbs items={[{ label: t("title") }]} />
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">{t("title")}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">

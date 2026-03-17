@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { getAddresses, createAddress } from "@/services/addressService";
 import { createOrder } from "@/services/orderService"; // Asegúrate de tener este servicio en frontend
 import { MapPin, Plus, Loader2, CheckCircle } from "lucide-react";
+import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -73,6 +74,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 max-w-4xl">
+      <Breadcrumbs items={[{ label: tc("cart"), href: "/cart" }, { label: t("title") }]} />
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">{t("title")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">

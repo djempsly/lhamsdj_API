@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product, Pagination } from "@/types";
+import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 function ProductsContent() {
   const t = useTranslations("products");
@@ -45,6 +46,9 @@ function ProductsContent() {
 
   return (
     <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <Breadcrumbs items={[
+        { label: search ? `${t("resultsFor")} "${search}"` : t("allProducts") },
+      ]} />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">{search ? `${t("resultsFor")} "${search}"` : t("allProducts")}</h1>

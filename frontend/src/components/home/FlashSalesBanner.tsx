@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Zap, Heart } from "lucide-react";
+import { Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import { CARD_COLORS, BADGE_GRADIENTS } from "./cardColors";
+import { BADGE_GRADIENTS } from "@/components/shared/cardColors";
+import ProductCard from "@/components/products/ProductCard";
 
 type FlashSale = {
   id: number; name: string; discount: number; endsAt: string;
@@ -83,34 +82,23 @@ export default function FlashSalesBanner() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-            {products.map(({ product }, i) => {
-              const img = product.images?.[0]?.url || "https://via.placeholder.com/200";
-              const price = typeof product.price === "number" ? product.price.toFixed(2) : product.price;
-              const c = CARD_COLORS[i % CARD_COLORS.length];
-              return (
-                <Link
-                  key={product.id} href={`/product/${product.slug || product.id}`}
-                  className="group bg-white overflow-hidden transition-all"
-                  style={{
-                    borderRadius: 16, borderBottom: `2.5px solid ${c.border}`,
-                    opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-                    transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)", transitionDelay: `${300 + i * 80}ms`, transitionDuration: "500ms",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.boxShadow = c.shadow; e.currentTarget.style.transform = "translateY(-8px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
-                >
-                  <div className="relative aspect-square bg-gray-100">
-                    <Image src={img} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width:640px) 50vw, 16vw" />
-                    <span className="absolute top-2 left-2 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: BADGE_GRADIENTS.discount }}>-{sale.discount}% {t("off")}</span>
-                    <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-300"><Heart size={14} className="text-gray-500" /></button>
-                  </div>
-                  <div className="p-2.5 sm:p-3">
-                    <h3 className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{product.name}</h3>
-                    {price && <span className="text-sm sm:text-base font-bold text-red-600">${price}</span>}
-                  </div>
-                </Link>
-              );
-            })}
+            {products.map(({ product }, i) => (
+              <ProductCard
+                key={product.id}
+                product={{ ...product, price: product.price ?? "0" }}
+                colorIndex={i}
+                variant="compact"
+                badge="discount"
+                badgeLabel={`-${sale.discount}% ${t("off")}`}
+                discountPercent={sale.discount}
+                style={{
+                  opacity: visible ? 1 : 0,
+                  transform: visible ? "translateY(0)" : "translateY(20px)",
+                  transition: "all 500ms cubic-bezier(0.16, 1, 0.3, 1)",
+                  transitionDelay: `${300 + i * 80}ms`,
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
