@@ -223,6 +223,33 @@ export async function changeUserPassword(data: { currentPassword: string; newPas
   }
 }
 
+export async function setup2FA() {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/2fa/setup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Error de conexión" };
+  }
+}
+
+export async function enable2FA(token: string) {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/2fa/enable`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Error de conexión" };
+  }
+}
+
 export async function getActiveSessions() {
   try {
     const { apiFetch } = await import("@/lib/apiFetch");

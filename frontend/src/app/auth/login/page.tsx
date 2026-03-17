@@ -32,6 +32,12 @@ export default function LoginPage() {
 
     if (res.success) {
       if (res.requires2FA) {
+        // If user must enroll 2FA first (never set up), redirect to setup page
+        if (res.mustEnroll2FA) {
+          window.location.href = "/auth/setup-2fa";
+          return;
+        }
+        // Otherwise, show 6-digit code input (already enrolled)
         setTwoFAUserId(res.userId);
         setTwoFACountry(res.user?.country || null);
         setShow2FA(true);

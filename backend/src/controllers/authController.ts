@@ -99,11 +99,22 @@ export const login = async (req: Request, res: Response) => {
     );
 
     if (result.requires2FA) {
-      await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent, details: result.mustEnroll2FA ? '2FA enrollment required' : '2FA required' });
+      const isMustEnroll = (result as { mustEnroll2FA?: boolean }).mustEnroll2FA ?? false;
+      await audit({ userId: result.user.id, action: AuditActions.LOGIN_SUCCESS, entity: 'User', entityId: result.user.id, ip: req.ip, userAgent, details: isMustEnroll ? '2FA enrollment required' : '2FA required' });
+
+      // If user must enroll 2FA, issue temporary auth cookies so they can call /2fa/setup and /2fa/enable
+      if (isMustEnroll) {
+        const { generateAccessToken, generateRefreshToken, storeRefreshToken } = await import('../utils/tokens');
+        const accessToken = generateAccessToken({ id: result.user.id, role: result.user.role, email: result.user.email });
+        const refreshToken = generateRefreshToken();
+        await storeRefreshToken(result.user.id, refreshToken, userAgent);
+        setAuthCookies(res, accessToken, refreshToken);
+      }
+
       return res.json({
         success: true,
         requires2FA: true,
-        mustEnroll2FA: (result as { mustEnroll2FA?: boolean }).mustEnroll2FA ?? false,
+        mustEnroll2FA: isMustEnroll,
         userId: result.user.id,
         user: { country: result.user.country },
       });
