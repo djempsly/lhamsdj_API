@@ -5,6 +5,7 @@ import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import CookieConsent from "@/components/shared/CookieConsent";
 import CartDrawer from "@/components/shared/CartDrawer";
+import ToastContainer from "@/components/shared/Toast";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
@@ -56,6 +57,7 @@ export default async function RootLayout({
           </div>
           <CartDrawer />
           <CookieConsent />
+          <ToastContainer />
         </NextIntlClientProvider>
       </body>
     </html>

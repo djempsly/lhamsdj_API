@@ -10,55 +10,44 @@ export default function PromoBanner() {
   const { ref, visible } = useScrollReveal();
 
   return (
-    <section
-      ref={ref}
-      className="mb-12 sm:mb-16 transition-all duration-700"
-      style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(30px)" }}
-    >
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[260px] sm:min-h-[320px] flex items-center">
-        {/* Gradient background with animated shapes */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.2),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(236,72,153,0.15),transparent_50%)]" />
+    <section ref={ref} className="mb-12 sm:mb-16" style={{ opacity: visible ? 1 : 0, transform: visible ? `translateY(0) scale(1)` : "translateY(30px) scale(0.98)", transition: "all 700ms ease" }}>
+      <div
+        className="relative overflow-hidden min-h-[260px] sm:min-h-[320px] flex items-center group"
+        style={{ borderRadius: 20, background: "linear-gradient(135deg, #7c3aed, #c026d3, #f472b6)", transition: "all 500ms ease" }}
+        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 12px 40px rgba(217,70,239,0.3)"; e.currentTarget.style.transform = "scale(1.01)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "scale(1)"; }}
+      >
+        {/* Orbital circles */}
+        <div className="absolute top-1/2 right-1/4 w-[300px] h-[300px] -translate-y-1/2 rounded-full pointer-events-none" style={{ border: "1px solid rgba(255,255,255,0.1)" }} />
+        <div className="absolute top-1/2 right-1/4 w-[200px] h-[200px] -translate-y-1/2 translate-x-[50px] rounded-full pointer-events-none" style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] -translate-y-1/2 -translate-x-[50px] rounded-full pointer-events-none" style={{ border: "1px solid rgba(255,255,255,0.05)" }} />
+        {/* Glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 -translate-y-1/3 translate-x-1/4 pointer-events-none" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)" }} />
 
-        {/* Floating shapes */}
-        <div className="absolute top-10 right-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
-
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }} />
-
-        {/* Content */}
         <div className="relative z-10 px-6 sm:px-10 md:px-16 py-10 sm:py-14 max-w-2xl">
           <div
-            className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/80 text-xs font-medium mb-5"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? "translateX(0)" : "translateX(-20px)", transitionDelay: "200ms", transition: "all 0.6s ease" }}
+            className="inline-flex items-center px-3 py-1 text-white/80 text-xs font-medium mb-5"
+            style={{ borderRadius: 20, background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", opacity: visible ? 1 : 0, transform: visible ? "translateX(0)" : "translateX(-20px)", transitionDelay: "200ms", transition: "all 0.6s ease" }}
           >
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-2 animate-pulse" />
-            {t("trustedBy")}
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-2 animate-pulse" />{t("trustedBy")}
           </div>
           <h2
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 leading-tight"
             style={{ opacity: visible ? 1 : 0, transform: visible ? "translateX(0)" : "translateX(-30px)", transitionDelay: "350ms", transition: "all 0.7s ease" }}
-          >
-            {t("promoTitle")}
-          </h2>
+          >{t("promoTitle")}</h2>
           <p
-            className="text-sm sm:text-base md:text-lg text-gray-300 mb-8 max-w-lg"
+            className="text-sm sm:text-base md:text-lg text-white/80 mb-8 max-w-lg"
             style={{ opacity: visible ? 1 : 0, transform: visible ? "translateX(0)" : "translateX(-30px)", transitionDelay: "500ms", transition: "all 0.7s ease" }}
-          >
-            {t("promoSubtitle")}
-          </p>
+          >{t("promoSubtitle")}</p>
           <Link
             href="/deals"
-            className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-3.5 rounded-full font-bold text-sm sm:text-base hover:bg-gray-100 hover:gap-3 hover:shadow-2xl active:scale-95 transition-all duration-300 touch-manipulation"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? "translateX(0)" : "translateX(-30px)", transitionDelay: "650ms", transition: "all 0.7s ease" }}
+            className="inline-flex items-center gap-2 text-white px-8 py-3.5 font-bold text-sm sm:text-base hover:gap-3 active:scale-95 touch-manipulation"
+            style={{
+              borderRadius: 50, backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.15)",
+              opacity: visible ? 1 : 0, transform: visible ? "translateX(0)" : "translateX(-30px)", transitionDelay: "650ms", transition: "all 0.7s ease",
+            }}
           >
-            {t("promoButton")}
-            <ArrowRight size={18} />
+            {t("promoButton")}<ArrowRight size={18} />
           </Link>
         </div>
       </div>

@@ -1,13 +1,16 @@
 import { getProducts, getBestSellers } from "@/services/productService";
 import { getCategories } from "@/services/categoryService";
 import Carousel from "@/components/ui/Carousel";
+import TrendingTags from "@/components/home/TrendingTags";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FlashSalesBanner from "@/components/home/FlashSalesBanner";
 import DealOfTheDaySlider from "@/components/home/DealOfTheDaySlider";
 import ExploreStrip from "@/components/home/ExploreStrip";
 import BestSellersCarousel from "@/components/home/BestSellersCarousel";
+import FeaturedPicks from "@/components/home/FeaturedPicks";
 import PromoBanner from "@/components/home/PromoBanner";
 import NewArrivalsScroll from "@/components/home/NewArrivalsScroll";
+import TestimonialsCarousel from "@/components/home/TestimonialsCarousel";
 import BrandsMarquee from "@/components/home/BrandsMarquee";
 import RecentlyViewed from "@/components/home/RecentlyViewed";
 import NewsletterSection from "@/components/home/NewsletterSection";
@@ -27,44 +30,50 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* 1. Hero Banner — fade + zoom transitions, auto-play 6s */}
-      <section className="container mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-6 sm:pb-8">
+      {/* 1. Hero Banner — fade + zoom, deep gradients, progress dots */}
+      <section className="container mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-4 sm:pb-6">
         <Carousel />
       </section>
 
-      {/* 2. Category Grid — animated cards with hover gradients */}
+      {/* 2. Trending Tags — colored chips with hover shadows */}
+      <section className="container mx-auto px-3 sm:px-4">
+        <TrendingTags />
+      </section>
+
+      {/* 3. Category Grid — gradient cards, variable layout, colored shadows */}
       <section className="container mx-auto px-3 sm:px-4">
         <CategoryGrid categories={categories} title={t("shopByCategory")} />
       </section>
 
-      {/* 3. Flash Sales — countdown timer + discount badges */}
+      {/* 4. Flash Sales — countdown, glow orbs, discount badges */}
       <section className="container mx-auto px-3 sm:px-4">
         <FlashSalesBanner />
       </section>
 
-      {/* 4. Deal of the Day — slider de productos en oferta */}
+      {/* 5. Deal of the Day */}
       <section className="container mx-auto px-3 sm:px-4">
         <DealOfTheDaySlider />
       </section>
 
-      {/* 5. Trust strip — shipping, returns, security badges */}
+      {/* 6. Trust Strip */}
       <ExploreStrip />
 
-      {/* 6. Best Sellers — horizontal carousel with badges and ratings */}
+      {/* 7. Best Sellers — colored border cards, wishlist hearts, rating stars */}
       <section className="container mx-auto px-3 sm:px-4">
-        <BestSellersCarousel
-          products={bestSellers}
-          title={t("bestSellers")}
-          badge={t("bestSellerBadge")}
-        />
+        <BestSellersCarousel products={bestSellers} title={t("bestSellers")} badge={t("bestSellerBadge")} />
       </section>
 
-      {/* 7. Promotional Banner — gradient + floating shapes */}
+      {/* 8. Featured Picks — asymmetric grid, gradient cards with tags */}
+      <section className="container mx-auto px-3 sm:px-4">
+        <FeaturedPicks products={bestSellers} title={t("featured")} />
+      </section>
+
+      {/* 9. Promo Banner — orbital circles, purple gradient */}
       <section className="container mx-auto px-3 sm:px-4">
         <PromoBanner />
       </section>
 
-      {/* 8. New Arrivals — fade between groups of 4 with auto-play */}
+      {/* 10. New Arrivals — fade between pages, colored borders, NEW badges */}
       <section className="container mx-auto px-3 sm:px-4">
         <NewArrivalsScroll
           products={productsResult.data}
@@ -75,17 +84,22 @@ export default async function Home() {
         />
       </section>
 
-      {/* 9. Brands Marquee — auto-scroll infinite loop */}
+      {/* 11. Testimonials — colored borders, avatar gradients */}
+      <section className="container mx-auto px-3 sm:px-4">
+        <TestimonialsCarousel />
+      </section>
+
+      {/* 12. Brands Marquee — uppercase, purple hover */}
       <section className="container mx-auto px-3 sm:px-4">
         <BrandsMarquee />
       </section>
 
-      {/* 10. Recently Viewed — user's browsing history carousel */}
+      {/* 13. Recently Viewed — colored border cards */}
       <section className="container mx-auto px-3 sm:px-4">
         <RecentlyViewed />
       </section>
 
-      {/* 11. Newsletter — modern gradient section with email input */}
+      {/* 14. Newsletter — gradient, glow orb, gradient button */}
       <section className="container mx-auto px-3 sm:px-4">
         <NewsletterSection />
       </section>
