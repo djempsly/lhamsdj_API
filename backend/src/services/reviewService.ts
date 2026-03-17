@@ -24,7 +24,7 @@ export const ReviewService = {
   },
 
   async getByProduct(productId: number, pagination: PaginationResult) {
-    const where = { productId };
+    const where: any = { productId, status: 'APPROVED' };
     const [data, total] = await Promise.all([
       prisma.review.findMany({
         where,

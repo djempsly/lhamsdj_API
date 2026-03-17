@@ -15,11 +15,48 @@ export interface Product {
   category?: { name: string; slug: string };
   vendor?: { businessName: string; slug: string };
   _count?: { reviews: number };
+  metaTitle?: string;
+  metaDescription?: string;
+  tags?: Tag[];
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+}
+
+export interface PriceHistoryEntry {
+  id: number;
+  oldPrice: string;
+  newPrice: string;
+  changedAt: string;
+}
+
+export interface ProductAnalytics {
+  views: number;
+  revenue: number;
+  unitsSold: number;
+  conversionRate: number;
+  avgRating: number;
+  reviewCount: number;
+}
+
+export interface AdminReview {
+  id: number;
+  userId: number;
+  productId: number;
+  rating: number;
+  comment?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  user?: { name: string; profileImage?: string };
+  product?: { name: string; slug: string; images?: { url: string }[] };
 }
 
 export interface ProductImage {
   id: number;
   url: string;
+  position?: number;
 }
 
 export interface ProductVariant {

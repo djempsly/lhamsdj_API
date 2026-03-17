@@ -43,5 +43,7 @@ export const updateProductSchema = z.object({
   stock: z.number().int().min(0).optional(), // <--- Nuevo campo
   categoryId: z.number().int().positive().optional(),
   isActive: z.boolean().optional(),
-  images: z.array(z.string().url()).optional()
+  images: z.array(z.string().url()).optional(),
+  metaTitle: z.string().max(70).optional().nullable(),
+  metaDescription: z.string().max(160).optional().nullable(),
 });

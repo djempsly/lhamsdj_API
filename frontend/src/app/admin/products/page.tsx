@@ -1,333 +1,510 @@
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import { useRouter } from "next/navigation";
-// import { getCategories } from "@/services/categoryService";
-// import { uploadImage } from "@/services/uploadService";
-// import { createProduct } from "@/services/productService";
-// import { ImagePlus, Loader2, Save } from "lucide-react";
-// import Image from "next/image";
-
-// export default function CreateProductPage() {
-//   const router = useRouter();
-  
-//   // Estados
-//   const [categories, setCategories] = useState<any[]>([]);
-//   const [loading, setLoading] = useState(false);
-//   const [uploading, setUploading] = useState(false);
-//   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-//   // Formulario
-//   const [formData, setFormData] = useState({
-//     name: "",
-//     description: "",
-//     price: "",
-//     stock: "",
-//     categoryId: "",
-//     imageUrl: "", // Aquí guardaremos la URL de AWS
-//   });
-
-//   // Cargar categorías al iniciar
-//   useEffect(() => {
-//     getCategories().then((res) => {
-//       if (res.success) setCategories(res.data);
-//     });
-//   }, []);
-
-//   // Manejar subida de imagen
-//   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (!file) return;
-
-//     // Vista previa local
-//     setImagePreview(URL.createObjectURL(file));
-//     setUploading(true);
-
-//     try {
-//       // Subir a AWS S3
-//       const res = await uploadImage(file);
-//       if (res.success) {
-//         setFormData({ ...formData, imageUrl: res.data.url });
-//       } else {
-//         alert("Error subiendo imagen");
-//       }
-//     } catch (error) {
-//       console.error(error);
-//       alert("Error de conexión");
-//     } finally {
-//       setUploading(false);
-//     }
-//   };
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     if (!formData.imageUrl) return alert("Por favor espera a que suba la imagen");
-
-//     setLoading(true);
-
-//     // Preparamos los datos para el Backend
-//     const payload = {
-//       name: formData.name,
-//       description: formData.description,
-//       price: parseFloat(formData.price),
-//       stock: parseInt(formData.stock),
-//       categoryId: parseInt(formData.categoryId),
-//       images: [formData.imageUrl] // El backend espera un array de strings
-//     };
-
-//     const res = await createProduct(payload);
-//     setLoading(false);
-
-//     if (res.success) {
-//       alert("Producto creado exitosamente");
-//       router.push("/admin/products"); // Volver a la lista
-//     } else {
-//       alert("Error: " + res.message);
-//     }
-//   };
-
-//   return (
-//     <div className="max-w-4xl mx-auto">
-//       <h1 className="text-3xl font-bold mb-8">Nuevo Producto</h1>
-
-//       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-sm border space-y-6">
-        
-//         {/* SECCIÓN IMAGEN */}
-//         <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg bg-gray-50">
-//           {imagePreview ? (
-//             <div className="relative w-64 h-64">
-//               <Image src={imagePreview} alt="Preview" fill className="object-contain rounded-md" />
-//               {uploading && (
-//                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold rounded-md">
-//                   Subiendo a AWS...
-//                 </div>
-//               )}
-//             </div>
-//           ) : (
-//             <label className="cursor-pointer flex flex-col items-center">
-//               <ImagePlus className="w-12 h-12 text-gray-400 mb-2" />
-//               <span className="text-gray-500">Clic para subir imagen</span>
-//               <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-//             </label>
-//           )}
-//         </div>
-
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//           {/* NOMBRE */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto</label>
-//             <input
-//               required
-//               type="text"
-//               className="w-full p-2 border rounded-md"
-//               value={formData.name}
-//               onChange={(e) => setFormData({...formData, name: e.target.value})}
-//             />
-//           </div>
-
-//           {/* CATEGORÍA */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-//             <select
-//               required
-//               className="w-full p-2 border rounded-md bg-white"
-//               value={formData.categoryId}
-//               onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
-//             >
-//               <option value="">Selecciona una categoría</option>
-//               {categories.map((cat) => (
-//                 <option key={cat.id} value={cat.id}>{cat.name}</option>
-//               ))}
-//             </select>
-//           </div>
-
-//           {/* PRECIO */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
-//             <input
-//               required
-//               type="number"
-//               min="0"
-//               step="0.01"
-//               className="w-full p-2 border rounded-md"
-//               value={formData.price}
-//               onChange={(e) => setFormData({...formData, price: e.target.value})}
-//             />
-//           </div>
-
-//           {/* STOCK */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Stock Inicial</label>
-//             <input
-//               required
-//               type="number"
-//               min="0"
-//               className="w-full p-2 border rounded-md"
-//               value={formData.stock}
-//               onChange={(e) => setFormData({...formData, stock: e.target.value})}
-//             />
-//           </div>
-//         </div>
-
-//         {/* DESCRIPCIÓN */}
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-//           <textarea
-//             className="w-full p-2 border rounded-md h-32"
-//             value={formData.description}
-//             onChange={(e) => setFormData({...formData, description: e.target.value})}
-//           />
-//         </div>
-
-//         {/* BOTÓN GUARDAR */}
-//         <button
-//           type="submit"
-//           disabled={loading || uploading || !formData.imageUrl}
-//           className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
-//         >
-//           {loading ? <Loader2 className="animate-spin" /> : <Save />}
-//           Guardar Producto
-//         </button>
-
-//       </form>
-//     </div>
-//   );
-// }
-
-
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
-import { getProducts, deleteProduct } from "@/services/productService";
-import { Plus, Trash2, Pencil, Package } from "lucide-react";
+import {
+  getProducts,
+  deleteProduct,
+  duplicateProduct,
+  bulkProductAction,
+  exportProductsCsv,
+} from "@/services/productService";
+import { getCategories } from "@/services/categoryService";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  Package,
+  Search,
+  Copy,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import { Product } from "@/types";
+import { showToast } from "@/components/shared/Toast";
+
+const ITEMS_PER_PAGE = 20;
+
+const purpleGradient = "linear-gradient(135deg, #8b5cf6, #7c3aed)";
+const purpleShadow = "rgba(139,92,246,0.25)";
+
+type BulkAction = "delete" | "activate" | "deactivate" | "changeCategory" | "adjustPrice";
 
 export default function AdminProductsPage() {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: ITEMS_PER_PAGE,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
 
-  // Función para cargar datos
-  const loadProducts = async () => {
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkAction, setBulkAction] = useState<BulkAction | "">("");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Bulk action extra params
+  const [bulkCategoryId, setBulkCategoryId] = useState<number | "">("");
+  const [bulkPricePercent, setBulkPricePercent] = useState("");
+
+  // Categories for bulk change
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 400);
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [searchQuery]);
+
+  // Load products
+  const loadProducts = useCallback(async () => {
     setLoading(true);
-    const res = await getProducts();
+    const res = await getProducts({
+      page,
+      limit: ITEMS_PER_PAGE,
+      search: debouncedSearch || undefined,
+    });
     setProducts(res.data ?? []);
+    if (res.pagination) setPagination(res.pagination);
+    setSelectedIds(new Set());
     setLoading(false);
-  };
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
     loadProducts();
+  }, [loadProducts]);
+
+  // Load categories once
+  useEffect(() => {
+    getCategories().then((res: any) => {
+      if (res.success && res.data) setCategories(res.data);
+      else if (Array.isArray(res)) setCategories(res);
+    });
   }, []);
+
+  // ---- Handlers ----
 
   const handleDelete = async (id: number) => {
     if (!confirm(t("deleteConfirm"))) return;
-    
     const res = await deleteProduct(id);
     if (res.success) {
-      alert(t("productDeleted"));
-      loadProducts(); // Recargar la tabla
+      showToast(t("productDeleted"), "success");
+      loadProducts();
     } else {
-      alert(t("deleteError") + ": " + res.message);
+      showToast(t("deleteError") + ": " + res.message, "error");
     }
   };
 
-  if (loading) return <div className="p-8 text-center">{t("loadingProducts")}</div>;
+  const handleDuplicate = async (id: number) => {
+    const res = await duplicateProduct(id);
+    if (res.success) {
+      showToast(t("duplicated"), "success");
+      loadProducts();
+    } else {
+      showToast(res.message || "Error", "error");
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportProductsCsv();
+      showToast(t("exportProducts") + " OK", "success");
+    } catch {
+      showToast(t("exportErrorMsg"), "error");
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map((p) => p.id)));
+    }
+  };
+
+  const handleBulkExecute = async () => {
+    if (!bulkAction || selectedIds.size === 0) return;
+
+    if (bulkAction === "delete" && !confirm(t("bulkDeleteConfirm", { count: selectedIds.size }))) return;
+
+    setBulkLoading(true);
+    const ids = Array.from(selectedIds);
+    let params: any = {};
+
+    if (bulkAction === "changeCategory" && bulkCategoryId) {
+      params = { categoryId: bulkCategoryId };
+    }
+    if (bulkAction === "adjustPrice" && bulkPricePercent) {
+      params = { percent: parseFloat(bulkPricePercent) };
+    }
+
+    const res = await bulkProductAction(ids, bulkAction, params);
+    setBulkLoading(false);
+
+    if (res.success) {
+      showToast(`${t("bulkActions")}: ${ids.length} products`, "success");
+      setBulkAction("");
+      setBulkCategoryId("");
+      setBulkPricePercent("");
+      loadProducts();
+    } else {
+      showToast(res.message || "Error", "error");
+    }
+  };
+
+  // ---- Status badge ----
+
+  const renderStatusBadge = (stock: number) => {
+    if (stock === 0) {
+      return (
+        <span
+          className="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"
+          style={{ background: "rgba(239,68,68,0.1)", color: "#dc2626" }}
+        >
+          <Package size={12} />
+          Out of stock
+        </span>
+      );
+    }
+    if (stock <= 5) {
+      return (
+        <span
+          className="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"
+          style={{ background: "rgba(245,158,11,0.1)", color: "#d97706" }}
+        >
+          <AlertTriangle size={12} />
+          {stock}
+        </span>
+      );
+    }
+    return (
+      <span
+        className="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"
+        style={{ background: "rgba(34,197,94,0.1)", color: "#16a34a" }}
+      >
+        <Package size={12} />
+        {stock}
+      </span>
+    );
+  };
+
+  // ---- Render ----
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      {/* Header row */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold">{t("myProducts")}</h1>
-        <Link 
-          href="/admin/products/create" 
-          className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition"
-        >
-          <Plus size={20} /> {t("newProduct")}
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border transition hover:bg-gray-50"
+            style={{ borderRadius: 10, borderColor: "#8b5cf6", color: "#8b5cf6" }}
+          >
+            <Download size={16} /> {t("exportProducts")}
+          </button>
+          <Link
+            href="/admin/products/create"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            style={{
+              borderRadius: 10,
+              background: purpleGradient,
+              boxShadow: `0 4px 14px ${purpleShadow}`,
+            }}
+          >
+            <Plus size={16} /> {t("newProduct")}
+          </Link>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="p-4 font-medium text-gray-500">{tCommon("image")}</th>
-              <th className="p-4 font-medium text-gray-500">{tCommon("name")}</th>
-              <th className="p-4 font-medium text-gray-500">{tCommon("price")}</th>
-              <th className="p-4 font-medium text-gray-500">{tCommon("stock")}</th>
-              <th className="p-4 font-medium text-gray-500 text-right">{tCommon("actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id} className="border-b hover:bg-gray-50 transition">
-                {/* IMAGEN PEQUEÑA */}
-                <td className="p-4">
-                  <div className="relative w-12 h-12 bg-gray-100 rounded-md overflow-hidden border">
-                    <Image 
-                      src={product.images[0]?.url || "https://via.placeholder.com/100"} 
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </td>
-                
-                {/* NOMBRE Y CATEGORÍA */}
-                <td className="p-4">
-                  <p className="font-bold text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-500">{tCommon("id")}: {product.id}</p>
-                </td>
+      {/* Search bar */}
+      <div className="relative mb-4">
+        <Search
+          size={18}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
+        <input
+          type="text"
+          placeholder={t("searchProducts")}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
+          style={{ borderRadius: 10 }}
+        />
+      </div>
 
-                {/* PRECIO */}
-                <td className="p-4 font-medium">${product.price}</td>
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-3 mb-4 p-3"
+          style={{
+            borderRadius: 10,
+            background: "rgba(139,92,246,0.06)",
+            border: "1px solid rgba(139,92,246,0.2)",
+          }}
+        >
+          <span className="text-sm font-medium text-purple-700">
+            {t("selectedCount", { count: selectedIds.size })}
+          </span>
 
-                {/* STOCK */}
-                <td className="p-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit ${
-                    product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    <Package size={12} />
-                    {product.stock}
-                  </span>
-                </td>
+          <select
+            value={bulkAction}
+            onChange={(e) => setBulkAction(e.target.value as BulkAction | "")}
+            className="text-sm border border-gray-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            style={{ borderRadius: 8 }}
+          >
+            <option value="">{t("bulkActions")}</option>
+            <option value="delete">{tCommon("delete")}</option>
+            <option value="activate">{t("bulkActivate")}</option>
+            <option value="deactivate">{t("bulkDeactivate")}</option>
+            <option value="changeCategory">{t("bulkSetCategory")}</option>
+            <option value="adjustPrice">{t("bulkAdjustPrice")}</option>
+          </select>
 
-                {/* BOTONES */}
-                <td className="p-4 text-right space-x-2">
-                  {/* <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition">
-                    <Pencil size={18} />
-                  </button> */}
+          {bulkAction === "changeCategory" && (
+            <select
+              value={bulkCategoryId}
+              onChange={(e) => setBulkCategoryId(Number(e.target.value))}
+              className="text-sm border border-gray-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              style={{ borderRadius: 8 }}
+            >
+              <option value="">{t("selectCategory")}</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          )}
 
+          {bulkAction === "adjustPrice" && (
+            <input
+              type="number"
+              placeholder="e.g. 10 or -15"
+              value={bulkPricePercent}
+              onChange={(e) => setBulkPricePercent(e.target.value)}
+              className="text-sm border border-gray-200 px-3 py-1.5 w-32 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              style={{ borderRadius: 8 }}
+            />
+          )}
 
-                        {/* AHORA ES: */}
-      <Link 
-        href={`/admin/products/edit/${product.id}`}
-        className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition inline-block"
-      >
-        <Pencil size={18} />
-      </Link>
-                  <button 
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-600 hover:bg-red-50 p-2 rounded-full transition"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-10 text-center text-gray-500">
-                  {t("noProductsYet")}
-                </td>
-              </tr>
+          <button
+            onClick={handleBulkExecute}
+            disabled={!bulkAction || bulkLoading}
+            className="text-sm font-medium text-white px-4 py-1.5 disabled:opacity-50 transition hover:opacity-90"
+            style={{
+              borderRadius: 8,
+              background: purpleGradient,
+              boxShadow: `0 2px 8px ${purpleShadow}`,
+            }}
+          >
+            {bulkLoading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              t("applyBulk")
             )}
-          </tbody>
-        </table>
+          </button>
+        </div>
+      )}
+
+      {/* Table */}
+      <div
+        className="bg-white shadow-sm border overflow-hidden"
+        style={{ borderRadius: 12 }}
+      >
+        {loading ? (
+          <div className="p-12 text-center text-gray-500 flex items-center justify-center gap-2">
+            <Loader2 size={20} className="animate-spin" />
+            {t("loadingProducts")}
+          </div>
+        ) : (
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="p-4 w-10">
+                  <input
+                    type="checkbox"
+                    checked={products.length > 0 && selectedIds.size === products.length}
+                    onChange={toggleSelectAll}
+                    className="rounded accent-purple-600"
+                    title={t("selectAll")}
+                  />
+                </th>
+                <th className="p-4 font-medium text-gray-500 text-sm">{tCommon("image")}</th>
+                <th className="p-4 font-medium text-gray-500 text-sm">{tCommon("name")}</th>
+                <th className="p-4 font-medium text-gray-500 text-sm">{tCommon("category")}</th>
+                <th className="p-4 font-medium text-gray-500 text-sm">{tCommon("price")}</th>
+                <th className="p-4 font-medium text-gray-500 text-sm">{tCommon("stock")}</th>
+                <th className="p-4 font-medium text-gray-500 text-sm text-right">{tCommon("actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr
+                  key={product.id}
+                  className={`border-b transition ${
+                    selectedIds.has(product.id) ? "bg-purple-50/50" : "hover:bg-gray-50"
+                  }`}
+                >
+                  {/* Checkbox */}
+                  <td className="p-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelect(product.id)}
+                      className="rounded accent-purple-600"
+                    />
+                  </td>
+
+                  {/* Image */}
+                  <td className="p-4">
+                    <div className="relative w-12 h-12 bg-gray-100 rounded-md overflow-hidden border">
+                      <Image
+                        src={product.images[0]?.url || "https://via.placeholder.com/100"}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </td>
+
+                  {/* Name */}
+                  <td className="p-4">
+                    <p className="font-bold text-gray-900">{product.name}</p>
+                    <p className="text-xs text-gray-400">{tCommon("id")}: {product.id}</p>
+                  </td>
+
+                  {/* Category */}
+                  <td className="p-4 text-sm text-gray-600">
+                    {product.category?.name || "\u2014"}
+                  </td>
+
+                  {/* Price */}
+                  <td className="p-4 font-medium">${product.price}</td>
+
+                  {/* Status badge */}
+                  <td className="p-4">{renderStatusBadge(product.stock)}</td>
+
+                  {/* Actions */}
+                  <td className="p-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => handleDuplicate(product.id)}
+                        className="text-purple-600 hover:bg-purple-50 p-2 rounded-full transition"
+                        title={t("duplicateProduct")}
+                      >
+                        <Copy size={16} />
+                      </button>
+                      <Link
+                        href={`/admin/products/edit/${product.id}`}
+                        className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition inline-flex"
+                      >
+                        <Pencil size={16} />
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="text-red-600 hover:bg-red-50 p-2 rounded-full transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="p-12 text-center text-gray-500">
+                    {t("noProductsYet")}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+
+        {/* Pagination */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+            <span className="text-sm text-gray-500">
+              {pagination.total} products &middot; {tCommon("page", { current: pagination.page, total: pagination.totalPages })}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={!pagination.hasPrev}
+                className="p-2 rounded-lg border bg-white text-gray-600 disabled:opacity-40 hover:bg-gray-100 transition"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  const current = pagination.page;
+                  return p === 1 || p === pagination.totalPages || Math.abs(p - current) <= 1;
+                })
+                .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  item === "..." ? (
+                    <span key={`dots-${idx}`} className="px-1 text-gray-400 text-sm">...</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setPage(item as number)}
+                      className="w-8 h-8 text-sm font-medium transition"
+                      style={
+                        item === pagination.page
+                          ? { borderRadius: 8, background: purpleGradient, color: "#fff", boxShadow: `0 2px 8px ${purpleShadow}` }
+                          : { borderRadius: 8, background: "#fff", border: "1px solid #e5e7eb", color: "#374151" }
+                      }
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                disabled={!pagination.hasNext}
+                className="p-2 rounded-lg border bg-white text-gray-600 disabled:opacity-40 hover:bg-gray-100 transition"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

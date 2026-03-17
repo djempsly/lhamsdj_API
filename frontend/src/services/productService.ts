@@ -109,3 +109,142 @@ export async function deleteProduct(id: number) {
     return { success: false, message: "Connection error" };
   }
 }
+
+export async function duplicateProduct(id: number) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/${id}/duplicate`, { method: "POST" });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Connection error" };
+  }
+}
+
+export async function bulkProductAction(ids: number[], action: string, params: any = {}) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/bulk`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, action, params }),
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Connection error" };
+  }
+}
+
+export async function getLowStockProducts(threshold: number = 5) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/low-stock?threshold=${threshold}`, { cache: "no-store" });
+    return await res.json();
+  } catch {
+    return { success: false, data: [] };
+  }
+}
+
+export async function getProductAnalytics(id: number) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/${id}/analytics`, { cache: "no-store" });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function getProductPriceHistory(id: number) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/${id}/price-history`, { cache: "no-store" });
+    return await res.json();
+  } catch {
+    return { success: false, data: [] };
+  }
+}
+
+export async function reorderProductImages(productId: number, imageIds: number[]) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/${productId}/images/reorder`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageIds }),
+    });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function setProductTags(productId: number, tagIds: number[]) {
+  try {
+    const res = await apiFetch(`${API_URL}/products/${productId}/tags`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tagIds }),
+    });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function searchTags(query: string) {
+  try {
+    const res = await apiFetch(`${API_URL}/admin/tags?search=${encodeURIComponent(query)}`, { cache: "no-store" });
+    return await res.json();
+  } catch {
+    return { success: false, data: [] };
+  }
+}
+
+export async function createTag(name: string) {
+  try {
+    const res = await apiFetch(`${API_URL}/admin/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function exportProductsCsv() {
+  try {
+    const res = await apiFetch(`${API_URL}/products/export`);
+    if (!res.ok) throw new Error("Export error");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `products-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    throw new Error("Export error");
+  }
+}
+
+export async function getReviewsAdmin(params?: { status?: string; page?: number; limit?: number }) {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.status) sp.set("status", params.status);
+    if (params?.page) sp.set("page", String(params.page));
+    if (params?.limit) sp.set("limit", String(params.limit));
+    const res = await apiFetch(`${API_URL}/reviews/admin?${sp}`, { cache: "no-store" });
+    return await res.json();
+  } catch {
+    return { success: false, data: [], pagination: { page: 1, total: 0, totalPages: 0 } };
+  }
+}
+
+export async function moderateReview(id: number, status: 'APPROVED' | 'REJECTED') {
+  try {
+    const res = await apiFetch(`${API_URL}/reviews/admin/${id}/moderate`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}

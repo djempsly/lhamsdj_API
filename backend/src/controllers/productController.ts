@@ -69,3 +69,83 @@ export const deleteProduct = async (req: Request, res: Response) => {
     res.status(400).json({ success: false, message: 'No se pudo eliminar el producto' });
   }
 };
+
+export const getProductById = async (req: Request, res: Response) => {
+  try {
+    const product = await ProductService.getById(Number(req.params.id));
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    res.json({ success: true, data: product });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const duplicateProduct = async (req: Request, res: Response) => {
+  try {
+    const product = await ProductService.duplicate(Number(req.params.id));
+    res.status(201).json({ success: true, data: product });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const bulkAction = async (req: Request, res: Response) => {
+  try {
+    const { ids, action, params } = req.body;
+    if (!ids?.length || !action) return res.status(400).json({ success: false, message: 'ids and action required' });
+    const result = await ProductService.bulkAction(ids, action, params);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getLowStock = async (req: Request, res: Response) => {
+  try {
+    const threshold = Number(req.query.threshold) || 5;
+    const data = await ProductService.getLowStock(threshold);
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getProductAnalytics = async (req: Request, res: Response) => {
+  try {
+    const data = await ProductService.getAnalytics(Number(req.params.id));
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getPriceHistory = async (req: Request, res: Response) => {
+  try {
+    const data = await ProductService.getPriceHistory(Number(req.params.id));
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const reorderImages = async (req: Request, res: Response) => {
+  try {
+    const { imageIds } = req.body;
+    if (!imageIds?.length) return res.status(400).json({ success: false, message: 'imageIds required' });
+    await ProductService.reorderImages(Number(req.params.id), imageIds);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const exportProducts = async (req: Request, res: Response) => {
+  try {
+    const csv = await ProductService.exportCsv();
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
+    res.send(csv);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

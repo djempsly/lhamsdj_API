@@ -32,6 +32,7 @@ import ticketRoutes from './ticketRoutes';
 import marketplaceRoutes from './marketplaceRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import securityRoutes from './securityRoutes';
+import tagRoutes from './tagRoutes';
 
 const router = Router();
 
@@ -79,6 +80,7 @@ router.use('/stats', apiPrivateLimiter, statsRoutes);
 router.use('/audit', apiPrivateLimiter, auditRoutes);
 router.use('/analytics', apiPrivateLimiter, analyticsRoutes);
 router.use('/security', apiPrivateLimiter, securityRoutes);
+router.use('/admin/tags', apiPrivateLimiter, tagRoutes);
 
 // Uploads
 router.use('/uploads', apiPrivateLimiter, uploadRoutes);

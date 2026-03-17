@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart, Store, Tag, FileText, Package, Truck, DollarSign, Wallet, AlertTriangle, BarChart3, Zap, Gift, Boxes, Receipt, MessageSquare, Shield, Mail, Sparkles } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, List, Users, ShoppingCart, Store, Tag, FileText, Package, Truck, DollarSign, Wallet, AlertTriangle, BarChart3, Zap, Gift, Boxes, Receipt, MessageSquare, Shield, Mail, Sparkles, Star } from "lucide-react";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -29,6 +29,7 @@ export default function AdminSidebar() {
     { nameKey: "giftCards", href: "/admin/gift-cards", icon: Gift },
     { nameKey: "bundles", href: "/admin/bundles", icon: Boxes },
     { nameKey: "taxRules", href: "/admin/tax-rules", icon: Receipt },
+    { nameKey: "reviews", href: "/admin/reviews", icon: Star },
     { nameKey: "tickets", href: "/admin/tickets", icon: MessageSquare },
     { nameKey: "security", href: "/admin/security", icon: Shield },
     { nameKey: "newsletter", href: "/admin/newsletter", icon: Mail },

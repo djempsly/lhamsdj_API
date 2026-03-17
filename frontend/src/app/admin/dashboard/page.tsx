@@ -26,7 +26,9 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { getDashboardStats } from "@/services/adminService";
-import { Users, ShoppingBag, DollarSign, ShoppingCart, Store, TrendingUp, Package } from "lucide-react";
+import { getLowStockProducts } from "@/services/productService";
+import { Users, ShoppingBag, DollarSign, ShoppingCart, Store, TrendingUp, Package, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 
 type Overview = {
   totalOrders: number;
@@ -48,6 +50,7 @@ export default function AdminDashboard() {
   const [ordersByStatus, setOrdersByStatus] = useState<Record<string, number>>({});
   const [topProducts, setTopProducts] = useState<{ productId: number; name: string; unitsSold: number }[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [lowStock, setLowStock] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadStats = async () => {
@@ -57,6 +60,10 @@ export default function AdminDashboard() {
       setOrdersByStatus(res.data.ordersByStatus ?? {});
       setTopProducts(res.data.topProducts ?? []);
       setRecentOrders(res.data.recentOrders ?? []);
+    }
+    const lowStockRes = await getLowStockProducts(5);
+    if (lowStockRes.success && lowStockRes.data) {
+      setLowStock(lowStockRes.data);
     }
     setLoading(false);
   };
@@ -171,6 +178,42 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Low Stock Alert Widget */}
+      <div
+        className="mt-6 bg-white rounded-xl border p-6"
+        style={{ borderLeft: "3px solid #f59e0b" }}
+      >
+        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+          <AlertTriangle size={20} className="text-amber-500" />
+          {t("lowStockAlert")}
+        </h2>
+        {lowStock.length > 0 ? (
+          <ul className="space-y-3">
+            {lowStock.map((product) => (
+              <li key={product.id}>
+                <Link
+                  href={`/admin/products/edit/${product.id}`}
+                  className="flex items-center justify-between hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
+                >
+                  <span className="text-sm font-medium truncate">{product.name}</span>
+                  <span
+                    className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                      product.stock <= 2
+                        ? "bg-red-100 text-red-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {product.stock}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500 text-sm">{t("noData")}</p>
+        )}
       </div>
     </div>
   );
