@@ -30,8 +30,8 @@ export async function getCsrfToken(): Promise<string> {
   if (!data?.csrfToken) {
     throw new Error("Invalid CSRF response");
   }
-  cachedToken = data.csrfToken;
-  return cachedToken;
+  cachedToken = data.csrfToken as string;
+  return cachedToken!;
 }
 
 /**

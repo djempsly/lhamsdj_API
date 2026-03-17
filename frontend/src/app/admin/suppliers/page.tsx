@@ -33,7 +33,7 @@ interface AdapterType {
 }
 
 const EMPTY_CONFIG = {
-  authType: "bearer" as const,
+  authType: "bearer" as "bearer" | "header" | "query",
   authHeaderName: "",
   authPrefix: "Bearer",
   authQueryParam: "",
@@ -318,7 +318,7 @@ export default function AdminSuppliersPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-purple-700 mb-1">Auth Type</label>
-                      <select value={form.apiConfig.authType} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, authType: e.target.value}})}
+                      <select value={form.apiConfig.authType} onChange={e => setForm({...form, apiConfig: {...form.apiConfig, authType: e.target.value as "bearer" | "header" | "query"}})}
                         className="w-full px-2 py-1.5 border border-purple-200 rounded text-sm bg-white outline-none">
                         <option value="bearer">Bearer Token</option>
                         <option value="header">Custom Header</option>
