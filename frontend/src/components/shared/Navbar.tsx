@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import SearchBar from "./SearchBar";
 import LanguageSwitcher from "./LanguageSwitcher";
+import CurrencySelector from "./CurrencySelector";
 import NotificationBell from "./NotificationBell";
 import { checkSession, logoutUser } from "@/services/authService";
 import { getCart } from "@/services/cartService";
@@ -123,6 +124,7 @@ export default function Navbar() {
             ) : (
               <Link href="/auth/register" className="hover:text-white transition whitespace-nowrap">{t("sellOnLhams")}</Link>
             )}
+            <CurrencySelector />
             <LanguageSwitcher />
           </div>
         </div>

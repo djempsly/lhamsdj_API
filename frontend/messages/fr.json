@@ -66,7 +66,9 @@
     "placeholder": "Rechercher produits, marques, catégories...",
     "searchButton": "Rechercher",
     "viewAll": "Voir tous les résultats pour",
-    "noResults": "Aucun résultat trouvé pour"
+    "noResults": "Aucun résultat trouvé pour",
+    "products": "Produits",
+    "categories": "Catégories"
   },
   "notifications": {
     "title": "Notifications",
@@ -233,7 +235,9 @@
     "continueShopping": "Continuer les achats",
     "close": "Fermer",
     "quantity": "Qté",
-    "items": "articles"
+    "items": "articles",
+    "clearCart": "Vider le panier",
+    "clearCartConfirm": "Êtes-vous sûr de vouloir vider tout le panier ?"
   },
   "checkout": {
     "title": "Finaliser l'Achat",
@@ -248,7 +252,13 @@
     "confirmNote": "En confirmant, votre commande sera créée et vous serez redirigé vers la passerelle de paiement sécurisée.",
     "confirmPay": "Confirmer et Payer",
     "selectAddress": "Sélectionnez une adresse de livraison",
-    "orderError": "Erreur lors de la création de la commande"
+    "orderError": "Erreur lors de la création de la commande",
+    "giftCard": "Carte cadeau",
+    "giftCardPlaceholder": "Entrez le code de votre carte",
+    "applyGiftCard": "Appliquer",
+    "giftCardApplied": "Carte appliquée, solde",
+    "giftCardInvalid": "Carte invalide ou sans solde",
+    "deleteAddressConfirm": "Supprimer cette adresse ?"
   },
   "wishlist": {
     "title": "Ma Liste de Souhaits",
@@ -326,7 +336,20 @@
     "downloadData": "Télécharger",
     "sessionRevoked": "Session révoquée",
     "noSessions": "Aucune autre session active",
-    "dataExported": "Données téléchargées"
+    "dataExported": "Données téléchargées",
+    "disable2FA": "Désactiver 2FA",
+    "disable2FADesc": "Désactivez l'authentification à deux facteurs de votre compte",
+    "disable2FAConfirm": "Êtes-vous sûr de vouloir désactiver 2FA ? Votre compte sera moins sécurisé.",
+    "disable2FAButton": "Désactiver 2FA",
+    "twoFADisabled": "2FA désactivé avec succès",
+    "deleteMyDataTitle": "Supprimer mes données",
+    "deleteMyDataDesc": "Supprimez définitivement toutes vos données personnelles du système (RGPD)",
+    "deleteMyDataButton": "Supprimer mes données",
+    "deleteDataWarning": "Êtes-vous absolument sûr ?",
+    "deleteDataWarningDesc": "Cette action supprimera définitivement toutes vos données personnelles. Elle ne peut pas être annulée.",
+    "cancelDelete": "Annuler",
+    "confirmDeleteData": "Oui, supprimer définitivement",
+    "dataDeleted": "Vos données ont été supprimées"
   },
   "payment": {
     "securePayment": "Paiement Sécurisé",
@@ -696,6 +719,30 @@
     "fixedAmount": "Montant fixe",
     "adjustValue": "Valeur",
     "applyBulk": "Appliquer",
+    "analyticsTitle": "Analytiques des ventes",
+    "salesOverview": "Aperçu des ventes",
+    "avgOrderValue": "Valeur moyenne de commande",
+    "totalUsers": "Total utilisateurs",
+    "period7d": "7 jours",
+    "period30d": "30 jours",
+    "period90d": "90 jours",
+    "period1y": "1 an",
+    "exportReport": "Exporter le rapport",
+    "topProductsTable": "Top Produits",
+    "productName": "Produit",
+    "unitsSoldCol": "Unités vendues",
+    "revenueCol": "Revenus",
+    "taxRulesTitle": "Règles fiscales",
+    "addTaxRule": "Ajouter une règle",
+    "taxRuleName": "Nom de la règle",
+    "taxRate": "Taux d'imposition (%)",
+    "taxState": "État/Province",
+    "taxCountry": "Pays",
+    "noTaxRules": "Aucune règle fiscale",
+    "taxRuleCreated": "Règle fiscale créée",
+    "taxRuleUpdated": "Règle fiscale mise à jour",
+    "taxRuleDeleted": "Règle fiscale supprimée",
+    "deleteTaxRuleConfirm": "Supprimer cette règle fiscale ?",
     "sidebar": {
       "adminPanel": "Panneau Admin",
       "storeName": "LhamsDJ Store",

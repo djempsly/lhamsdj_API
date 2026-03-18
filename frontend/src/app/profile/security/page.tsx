@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { changeUserPassword, getActiveSessions, revokeSession, exportMyData } from "@/services/authService";
+import { changeUserPassword, getActiveSessions, revokeSession, exportMyData, disable2FA, deleteMyData } from "@/services/authService";
 import Link from "next/link";
-import { ArrowLeft, Lock, Monitor, Download, LogOut } from "lucide-react";
+import { ArrowLeft, Lock, Monitor, Download, LogOut, ShieldOff, Trash2, AlertTriangle } from "lucide-react";
 import PasswordInput from "@/components/ui/PasswordInput";
 
 type Session = { id: number; ip: string | null; userAgent: string | null; lastActive: string; createdAt: string };
@@ -19,6 +19,9 @@ export default function SecurityPage() {
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportSuccess, setExportSuccess] = useState("");
+  const [disabling2FA, setDisabling2FA] = useState(false);
+  const [deletingData, setDeletingData] = useState(false);
+  const [deleteConfirmStep, setDeleteConfirmStep] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -217,6 +220,97 @@ export default function SecurityPage() {
           <Download size={18} />
           {exportLoading ? "Preparing..." : t("downloadData")}
         </button>
+      </div>
+
+      <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100 mt-8">
+        <div className="flex items-center gap-3 mb-6 pb-6 border-b">
+          <div className="p-3 bg-orange-50 text-orange-600 rounded-full">
+            <ShieldOff size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold">{t("disable2FA")}</h2>
+            <p className="text-gray-500 text-sm">{t("disable2FADesc")}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          disabled={disabling2FA}
+          onClick={async () => {
+            if (!confirm(t("disable2FAConfirm"))) return;
+            setDisabling2FA(true);
+            setError("");
+            setSuccess("");
+            const res = await disable2FA();
+            setDisabling2FA(false);
+            if (res.success) {
+              setSuccess(t("twoFADisabled"));
+            } else {
+              setError(res.message || "Error");
+            }
+          }}
+          className="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2"
+        >
+          <ShieldOff size={18} />
+          {disabling2FA ? t("updating") : t("disable2FAButton")}
+        </button>
+      </div>
+
+      <div className="bg-white p-8 rounded-xl shadow-md border border-red-100 mt-8">
+        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-red-100">
+          <div className="p-3 bg-red-50 text-red-600 rounded-full">
+            <Trash2 size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-red-600">{t("deleteMyDataTitle")}</h2>
+            <p className="text-gray-500 text-sm">{t("deleteMyDataDesc")}</p>
+          </div>
+        </div>
+        {deleteConfirmStep === 0 && (
+          <button
+            type="button"
+            onClick={() => setDeleteConfirmStep(1)}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 flex items-center gap-2"
+          >
+            <Trash2 size={18} />
+            {t("deleteMyDataButton")}
+          </button>
+        )}
+        {deleteConfirmStep === 1 && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="text-red-600" size={20} />
+              <p className="font-bold text-red-700">{t("deleteDataWarning")}</p>
+            </div>
+            <p className="text-sm text-red-600 mb-4">{t("deleteDataWarningDesc")}</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmStep(0)}
+                className="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50"
+              >
+                {t("cancelDelete")}
+              </button>
+              <button
+                type="button"
+                disabled={deletingData}
+                onClick={async () => {
+                  setDeletingData(true);
+                  const res = await deleteMyData();
+                  setDeletingData(false);
+                  if (res.success) {
+                    setDeleteConfirmStep(0);
+                    setSuccess(t("dataDeleted"));
+                  } else {
+                    setError(res.message || "Error");
+                  }
+                }}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 disabled:opacity-50"
+              >
+                {deletingData ? t("updating") : t("confirmDeleteData")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

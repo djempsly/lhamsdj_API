@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { getCart, updateCartItem, removeCartItem } from "@/services/cartService";
-import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
+import { getCart, updateCartItem, removeCartItem, clearCart } from "@/services/cartService";
+import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, XCircle } from "lucide-react";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 export default function CartPage() {
@@ -47,6 +47,15 @@ export default function CartPage() {
     setUpdating(false);
   };
 
+  const handleClearCart = async () => {
+    if (!confirm(t("clearCartConfirm"))) return;
+    setUpdating(true);
+    await clearCart();
+    await loadCart();
+    refreshNavbar();
+    setUpdating(false);
+  };
+
   // Calcular total dinámicamente
   const total = cart?.items.reduce((acc: number, item: any) => {
     const price = item.productVariant ? Number(item.productVariant.price) : Number(item.product.price);
@@ -73,7 +82,17 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
       <Breadcrumbs items={[{ label: t("title") }]} />
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">{t("title")}</h1>
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">{t("title")}</h1>
+        <button
+          onClick={handleClearCart}
+          disabled={updating}
+          className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition disabled:opacity-50 touch-manipulation"
+        >
+          <XCircle size={16} />
+          {t("clearCart")}
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         <div className="lg:col-span-2 space-y-3 sm:space-y-4">

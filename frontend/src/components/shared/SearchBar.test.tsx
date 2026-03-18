@@ -24,11 +24,12 @@ describe("SearchBar", () => {
     expect(input).toHaveValue("");
   });
 
-  it("fetches when query length >= 2 after debounce", async () => {
+  it("fetches autocomplete when query length >= 2 after debounce", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(
         JSON.stringify({
-          data: [{ id: 1, name: "Product A", price: "10", slug: "product-a", images: [{ url: "/a.jpg" }] }],
+          success: true,
+          data: { products: [{ id: 1, name: "Product A", price: "10", slug: "product-a", images: [{ url: "/a.jpg" }] }], categories: [] },
         }),
         { headers: { "Content-Type": "application/json" } },
       ) as Response,
@@ -40,7 +41,7 @@ describe("SearchBar", () => {
     await waitFor(
       () => {
         expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining("products?search=ab"),
+          expect.stringContaining("search/autocomplete?q=ab"),
           expect.any(Object),
         );
       },

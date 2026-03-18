@@ -270,6 +270,29 @@ export async function revokeSession(sessionId: number) {
   }
 }
 
+export async function disable2FA() {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/2fa/disable`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Error disabling 2FA" };
+  }
+}
+
+export async function deleteMyData() {
+  try {
+    const { apiFetch } = await import("@/lib/apiFetch");
+    const res = await apiFetch(`${API_URL}/analytics/my-data`, { method: "DELETE" });
+    return await res.json();
+  } catch {
+    return { success: false, message: "Error deleting data" };
+  }
+}
+
 export async function exportMyData() {
   try {
     const { apiFetch } = await import("@/lib/apiFetch");

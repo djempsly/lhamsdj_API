@@ -46,6 +46,15 @@ export async function removeCartItem(itemId: number) {
   }
 }
 
+export async function clearCart() {
+  try {
+    const res = await apiFetch(`${API_URL}/cart`, { method: "DELETE" });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}
+
 export async function getCartCount() {
   const cart = await getCart();
   if (cart?.success && cart.data?.items) {

@@ -8,6 +8,7 @@ import CartDrawer from "@/components/shared/CartDrawer";
 import ToastContainer from "@/components/shared/Toast";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,16 +49,18 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={`${inter.className} overflow-x-hidden`}>
         <NextIntlClientProvider messages={messages}>
-          <div id="app-wrapper" className="flex flex-col min-h-screen bg-white will-change-transform">
-            <Navbar />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <CartDrawer />
-          <CookieConsent />
-          <ToastContainer />
+          <CurrencyProvider>
+            <div id="app-wrapper" className="flex flex-col min-h-screen bg-white will-change-transform">
+              <Navbar />
+              <main className="flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <CartDrawer />
+            <CookieConsent />
+            <ToastContainer />
+          </CurrencyProvider>
         </NextIntlClientProvider>
       </body>
     </html>

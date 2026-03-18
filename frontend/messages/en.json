@@ -66,7 +66,9 @@
     "placeholder": "Search products, brands, categories...",
     "searchButton": "Search",
     "viewAll": "View all results for",
-    "noResults": "No results found for"
+    "noResults": "No results found for",
+    "products": "Products",
+    "categories": "Categories"
   },
   "notifications": {
     "title": "Notifications",
@@ -233,7 +235,9 @@
     "continueShopping": "Continue Shopping",
     "close": "Close",
     "quantity": "Qty",
-    "items": "items"
+    "items": "items",
+    "clearCart": "Clear cart",
+    "clearCartConfirm": "Are you sure you want to clear the entire cart?"
   },
   "checkout": {
     "title": "Complete Purchase",
@@ -248,7 +252,13 @@
     "confirmNote": "By confirming, your order will be created and you'll proceed to the secure payment gateway.",
     "confirmPay": "Confirm and Pay",
     "selectAddress": "Select a shipping address",
-    "orderError": "Error creating order"
+    "orderError": "Error creating order",
+    "giftCard": "Gift Card",
+    "giftCardPlaceholder": "Enter your gift card code",
+    "applyGiftCard": "Apply",
+    "giftCardApplied": "Card applied, balance",
+    "giftCardInvalid": "Invalid or empty gift card",
+    "deleteAddressConfirm": "Delete this address?"
   },
   "wishlist": {
     "title": "My Wishlist",
@@ -326,7 +336,20 @@
     "downloadData": "Download",
     "sessionRevoked": "Session revoked",
     "noSessions": "No other active sessions",
-    "dataExported": "Data downloaded"
+    "dataExported": "Data downloaded",
+    "disable2FA": "Disable 2FA",
+    "disable2FADesc": "Disable two-factor authentication on your account",
+    "disable2FAConfirm": "Are you sure you want to disable 2FA? Your account will be less secure.",
+    "disable2FAButton": "Disable 2FA",
+    "twoFADisabled": "2FA disabled successfully",
+    "deleteMyDataTitle": "Delete my data",
+    "deleteMyDataDesc": "Permanently delete all your personal data from the system (GDPR)",
+    "deleteMyDataButton": "Delete my data",
+    "deleteDataWarning": "Are you absolutely sure?",
+    "deleteDataWarningDesc": "This action will permanently delete all your personal data. It cannot be undone.",
+    "cancelDelete": "Cancel",
+    "confirmDeleteData": "Yes, permanently delete",
+    "dataDeleted": "Your data has been deleted"
   },
   "payment": {
     "securePayment": "Secure Payment",
@@ -696,6 +719,30 @@
     "fixedAmount": "Fixed amount",
     "adjustValue": "Value",
     "applyBulk": "Apply",
+    "analyticsTitle": "Sales Analytics",
+    "salesOverview": "Sales Overview",
+    "avgOrderValue": "Average Order Value",
+    "totalUsers": "Total Users",
+    "period7d": "7 days",
+    "period30d": "30 days",
+    "period90d": "90 days",
+    "period1y": "1 year",
+    "exportReport": "Export Report",
+    "topProductsTable": "Top Products",
+    "productName": "Product",
+    "unitsSoldCol": "Units Sold",
+    "revenueCol": "Revenue",
+    "taxRulesTitle": "Tax Rules",
+    "addTaxRule": "Add Rule",
+    "taxRuleName": "Rule Name",
+    "taxRate": "Tax Rate (%)",
+    "taxState": "State/Province",
+    "taxCountry": "Country",
+    "noTaxRules": "No tax rules",
+    "taxRuleCreated": "Tax rule created",
+    "taxRuleUpdated": "Tax rule updated",
+    "taxRuleDeleted": "Tax rule deleted",
+    "deleteTaxRuleConfirm": "Delete this tax rule?",
     "sidebar": {
       "adminPanel": "Admin Panel",
       "storeName": "LhamsDJ Store",

@@ -24,3 +24,12 @@ export async function createAddress(data: AddressInput) {
   });
   return await res.json();
 }
+
+export async function deleteAddress(id: number) {
+  try {
+    const res = await apiFetch(`${API_URL}/addresses/${id}`, { method: "DELETE" });
+    return await res.json();
+  } catch {
+    return { success: false };
+  }
+}

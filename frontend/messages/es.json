@@ -66,7 +66,9 @@
     "placeholder": "Buscar productos, marcas, categorías...",
     "searchButton": "Buscar",
     "viewAll": "Ver todos los resultados de",
-    "noResults": "No se encontraron resultados para"
+    "noResults": "No se encontraron resultados para",
+    "products": "Productos",
+    "categories": "Categorías"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -233,7 +235,9 @@
     "continueShopping": "Seguir comprando",
     "close": "Cerrar",
     "quantity": "Cant",
-    "items": "artículos"
+    "items": "artículos",
+    "clearCart": "Vaciar carrito",
+    "clearCartConfirm": "¿Estás seguro de que deseas vaciar todo el carrito?"
   },
   "checkout": {
     "title": "Completar compra",
@@ -248,7 +252,13 @@
     "confirmNote": "Al confirmar, se creará tu pedido y serás redirigido a la pasarela de pago segura.",
     "confirmPay": "Confirmar y pagar",
     "selectAddress": "Selecciona una dirección de envío",
-    "orderError": "Error al crear el pedido"
+    "orderError": "Error al crear el pedido",
+    "giftCard": "Tarjeta regalo",
+    "giftCardPlaceholder": "Ingresa el código de tu tarjeta",
+    "applyGiftCard": "Aplicar",
+    "giftCardApplied": "Tarjeta aplicada, saldo",
+    "giftCardInvalid": "Tarjeta inválida o sin saldo",
+    "deleteAddressConfirm": "¿Eliminar esta dirección?"
   },
   "wishlist": {
     "title": "Mi lista de deseos",
@@ -326,7 +336,20 @@
     "downloadData": "Descargar",
     "sessionRevoked": "Sesión revocada",
     "noSessions": "No hay otras sesiones activas",
-    "dataExported": "Datos descargados"
+    "dataExported": "Datos descargados",
+    "disable2FA": "Desactivar 2FA",
+    "disable2FADesc": "Desactiva la autenticación de dos factores de tu cuenta",
+    "disable2FAConfirm": "¿Estás seguro de que deseas desactivar 2FA? Tu cuenta será menos segura.",
+    "disable2FAButton": "Desactivar 2FA",
+    "twoFADisabled": "2FA desactivado correctamente",
+    "deleteMyDataTitle": "Eliminar mis datos",
+    "deleteMyDataDesc": "Elimina permanentemente todos tus datos personales del sistema (RGPD)",
+    "deleteMyDataButton": "Eliminar mis datos",
+    "deleteDataWarning": "¿Estás completamente seguro?",
+    "deleteDataWarningDesc": "Esta acción eliminará permanentemente todos tus datos personales. No se puede deshacer.",
+    "cancelDelete": "Cancelar",
+    "confirmDeleteData": "Sí, eliminar permanentemente",
+    "dataDeleted": "Tus datos han sido eliminados"
   },
   "payment": {
     "securePayment": "Pago seguro",
@@ -695,6 +718,30 @@
     "fixedAmount": "Monto fijo",
     "adjustValue": "Valor",
     "applyBulk": "Aplicar",
+    "analyticsTitle": "Analíticas de ventas",
+    "salesOverview": "Resumen de ventas",
+    "avgOrderValue": "Valor promedio de pedido",
+    "totalUsers": "Total de usuarios",
+    "period7d": "7 días",
+    "period30d": "30 días",
+    "period90d": "90 días",
+    "period1y": "1 año",
+    "exportReport": "Exportar reporte",
+    "topProductsTable": "Productos más vendidos",
+    "productName": "Producto",
+    "unitsSoldCol": "Unidades vendidas",
+    "revenueCol": "Ingresos",
+    "taxRulesTitle": "Reglas fiscales",
+    "addTaxRule": "Agregar regla",
+    "taxRuleName": "Nombre de la regla",
+    "taxRate": "Tasa de impuesto (%)",
+    "taxState": "Estado/Provincia",
+    "taxCountry": "País",
+    "noTaxRules": "Sin reglas fiscales",
+    "taxRuleCreated": "Regla fiscal creada",
+    "taxRuleUpdated": "Regla fiscal actualizada",
+    "taxRuleDeleted": "Regla fiscal eliminada",
+    "deleteTaxRuleConfirm": "¿Eliminar esta regla fiscal?",
     "sidebar": {
       "adminPanel": "Panel de administración",
       "storeName": "LhamsDJ Store",

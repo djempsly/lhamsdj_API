@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft, Star, Trophy, Copy, Check, Gift } from "lucide-react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getLoyaltyProfile, getLoyaltyHistory, redeemLoyaltyPoints, generateReferralCode as generateReferralCodeService } from "@/services/analyticsAdminService";
 
 type LoyaltyProfile = {
   points: number;
@@ -43,11 +42,10 @@ export default function UserLoyaltyPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [profileRes, historyRes] = await Promise.all([
-        fetch(`${API_URL}/marketplace/loyalty/profile`, { credentials: "include" }),
-        fetch(`${API_URL}/marketplace/loyalty/history`, { credentials: "include" }),
+      const [profileData, historyData] = await Promise.all([
+        getLoyaltyProfile(),
+        getLoyaltyHistory(),
       ]);
-      const [profileData, historyData] = await Promise.all([profileRes.json(), historyRes.json()]);
       if (profileData.success) setProfile(profileData.data);
       if (historyData.success) setHistory(Array.isArray(historyData.data) ? historyData.data : []);
     } catch { /* empty */ }
@@ -65,11 +63,7 @@ export default function UserLoyaltyPage() {
 
   const generateReferralCode = async () => {
     try {
-      const res = await fetch(`${API_URL}/marketplace/loyalty/referral`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
+      const data = await generateReferralCodeService();
       if (data.success) load();
     } catch { /* empty */ }
   };
@@ -78,13 +72,7 @@ export default function UserLoyaltyPage() {
     if (!redeemAmount || Number(redeemAmount) <= 0) return;
     setRedeeming(true);
     try {
-      const res = await fetch(`${API_URL}/marketplace/loyalty/redeem`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ points: Number(redeemAmount) }),
-      });
-      const data = await res.json();
+      const data = await redeemLoyaltyPoints(Number(redeemAmount));
       if (data.success) {
         setRedeemAmount("");
         load();
